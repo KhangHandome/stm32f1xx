@@ -1,0 +1,4 @@
+../Core/Src/hal_uart.c:11:13:HAL_UART_Send_Char	16	static
+../Core/Src/hal_uart.c:19:6:HAL_UART_Init	16	static
+../Core/Src/hal_uart.c:43:6:HAL_UART_Send	24	static
+../Core/Src/hal_uart.c:52:6:HAL_UART_ReadChar	16	static

@@ -1,0 +1,4 @@
+../Core/Src/hal_uart.c:11:13:HAL_UART_Send_Char	2
+../Core/Src/hal_uart.c:19:6:HAL_UART_Init	1
+../Core/Src/hal_uart.c:43:6:HAL_UART_Send	2
+../Core/Src/hal_uart.c:52:6:HAL_UART_ReadChar	2
