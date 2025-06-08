@@ -1597,7 +1597,6 @@ int main(void)
   SystemClock_Config();
  80011f0:	f000 f992 	bl	8001518 <SystemClock_Config>
 
-
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
  80011f4:	f000 f9cc 	bl	8001590 <MX_GPIO_Init>

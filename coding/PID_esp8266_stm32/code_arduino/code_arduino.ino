@@ -2,8 +2,8 @@
 #include <ESP8266WebServer.h>
 #include <SoftwareSerial.h>
 
-const char* ssid = "Indoor coffee";
-const char* password = "camonquykhach";
+const char* ssid = "iPhone";
+const char* password = "20070832";
 
 ESP8266WebServer server(80);
 SoftwareSerial uart(D5, D6); // RX, TX

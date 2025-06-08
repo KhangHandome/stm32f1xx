@@ -35,6 +35,7 @@ float speed = 0 ;
 uint8_t data_read[32] = {0};
 uint8_t data_send[32] = {0};
 HAL_UART_t uart1_config = {
+//	RX : PA10, TX : PA9
 	.uart_port = USART1,
 	.clock_input = 8000000,
 	.baudrate = 9600,
@@ -80,7 +81,6 @@ int main(void)
   HAL_Init();
   /* Configure the system clock */
   SystemClock_Config();
-
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
