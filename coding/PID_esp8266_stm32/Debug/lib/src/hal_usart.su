@@ -1,0 +1,11 @@
+../Drivers/CMSIS/Include/core_cm3.h:1511:22:__NVIC_EnableIRQ	16	static
+../lib/src/hal_usart.c:23:6:HAL_UART_Init	24	static
+../lib/src/hal_usart.c:114:6:HAL_UART_Transfer	24	static
+../lib/src/hal_usart.c:126:9:HAL_UART_Read	24	static
+../lib/src/hal_usart.c:139:13:HAL_UART_Transfer_Char	16	static
+../lib/src/hal_usart.c:150:13:HAL_UART_Calculation_BRR	40	static
+../lib/src/hal_usart.c:160:6:HAL_UART_SetDMACallback	16	static
+../lib/src/hal_usart.c:166:6:HAL_UART_SetDMABuffer	16	static
+../lib/src/hal_usart.c:178:6:HAL_UART_SetTxCallBack	16	static
+../lib/src/hal_usart.c:185:6:HAL_UART_SetRxCallBack	16	static
+../lib/src/hal_usart.c:196:6:USART1_IRQHandler	8	static

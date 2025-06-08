@@ -1,0 +1,2 @@
+../lib/src/hal_dma.c:5:6:HAL_SetCallBackFunction	2
+../lib/src/hal_dma.c:12:6:DMA1_Channel5_IRQHandler	2
