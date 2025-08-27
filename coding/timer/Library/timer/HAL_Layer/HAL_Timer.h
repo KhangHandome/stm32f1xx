@@ -65,6 +65,7 @@ typedef enum
 typedef enum
 {
 	HAL_TIM_EDGE_ALIGNED_MODE,  /* Depending when up couter or downcounter */
+	/* It work when config at output compare */
 	HAL_CENTER_ALIGNED_MODE_1,  /* Generate a interupt about CCIF When counting down */
 	HAL_CENTER_ALIGNED_MODE_2,  /* Generate a interupt about CCIF When counting up */
 	HAL_CENTER_ALIGNED_MODE_3   /* Generate a interupt about CCIF When counting down and counting up  */
@@ -170,11 +171,17 @@ typedef union {
 	HAL_TIM_Output_Compare_Mode_t Compare_Mode;
 	HAL_TIM_Input_Capture_Mode_t Capture_Mode;
 } HAL_TIM_Capture_Compare_Mode_t;
-
+typedef enum
+{
+	HAL_TIM_Channel_Disable = 0x00 ,
+	HAL_TIM_Channel_Enable  = 0x01
+} HAL_TIM_Channel_Enable_t;
 /*
  * @brief : Structure to hold timer configuration including timer instance, prescaler, auto-reload value, timer mode, counter mode, and capture/compare registers
  */
 typedef struct{
+
+	HAL_TIM_Channel_Enable_t HAL_TIM_Channel_Enable; /*Enable or disable */
 	uint16_t TIM_CCR; /*Timer capture compare register */
 	HAL_Channel_Config_Pin_t HAL_Channel_Config_Pin;
 	HAL_TIM_Capture_Compare_Mode_t HAL_TIM_Capture_Compare_Mode;
@@ -182,14 +189,14 @@ typedef struct{
 } HAL_Timer_Channel_Config_t;
 
 typedef struct {
+    TIM_TypeDef* Timer;             /* Timer instance */
     uint16_t Prescale_Value;                   /* Setup prescaler */
     uint16_t Auto_Reload_Value;                   /* Setup auto-reload value */
-    TIM_TypeDef* Timer;             /* Timer instance */
     HAL_Timer_ARPE_t HAL_Timer_ARPE;/* Arpe disabe or enable */
     HAL_Timer_Center_Aligned_Mode_t HAL_Timer_Center_Aligned_Mode ;
-    HAL_Timer_Counter_Dir_t HAL_Timer_Counter_Dir ;
-    HAL_Timer_Mode_t HAL_Timer_Mode;
-    HAL_Timer_UpdateReqSrc_t HAL_Timer_UpdateReqSrc;
+    HAL_Timer_Counter_Dir_t HAL_Timer_Counter_Dir ;   /*Direction of CNT, counting up or counting down */
+    HAL_Timer_Mode_t HAL_Timer_Mode;  /* Select mode for timer, once times, for continuous */
+    HAL_Timer_UpdateReqSrc_t HAL_Timer_UpdateReqSrc; /* Select update request */
     HAL_Timer_UpdateEventState_t HAL_Timer_UpdateEventState;
     HAL_Timer_Channel_Config_t HAL_Timer_Channel[MAX_CHANNEL_TIMER]; /* Config for each channel */
     CallbackFunction_t CallbackFunction; /*Callback function */

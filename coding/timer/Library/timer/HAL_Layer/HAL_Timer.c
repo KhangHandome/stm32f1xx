@@ -11,14 +11,92 @@ static CallbackFunction_t CallbackFunction_TIM4; /* Callback for TIM4 interrupt 
 static CallbackFunction_t CallbackFunction_TIM5; /* Callback for TIM5 interrupt, available in some STM32F103 models */
 #endif
 
+static void HAL_Timer_ConfigChannel(TIM_TypeDef *TIMx, uint8_t channel, HAL_Timer_Channel_Config_t *HAL_Timer_Channel_Config);
+static void HAL_Timer_ConfigChannel(TIM_TypeDef *TIMx, uint8_t channel, HAL_Timer_Channel_Config_t *HAL_Timer_Channel_Config)
+{
+    uint32_t shift = (channel % 2) * 8;
+    volatile uint32_t *ccmr;
 
+    // Xác định dùng CCMR1 (CH1, CH2) hay CCMR2 (CH3, CH4)
+    if (channel < 2) {
+        ccmr = &TIMx->CCMR1;
+    } else {
+        ccmr = &TIMx->CCMR2;
+    }
+
+    // Xóa bits cũ trong CCMR tương ứng với channel
+    *ccmr &= ~(0xFF << shift);
+
+    if ( HAL_Timer_Channel_Config->HAL_TIM_Channel_Enable == HAL_TIM_Channel_Enable)
+    {
+    	if (HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Compare_Mode.HAL_Timer_Capture_Compare_Select == HAL_TIM_CCxS_OUTPUT)
+		{
+			// Cấu hình Output Compare Mode
+			HAL_TIM_Output_Compare_Mode_t *oc = &HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Compare_Mode;
+			uint16_t val = 0;
+			val |= (oc->HAL_Timer_Capture_Compare_Select & 0x3) << (shift + 0);  // CCxS
+			val |= (oc->Output_Compare_Fast_Enable & 0x1) << (shift + 2);         // OCxFE
+			val |= (oc->Output_Compare_Preload & 0x1) << (shift + 3);             // OCxPE
+			val |= (oc->HAL_Timer_Output_Compare_Mode & 0x7) << (shift + 4);      // OCxM
+			val |= (oc->Output_Compare_Clear_Enable & 0x1) << (shift + 7);        // OCxCE
+			*ccmr |= val;
+		    // Thiết lập giá trị CCR ban đầu
+		    switch(channel) {
+		        case 0: TIMx->CCR1 = HAL_Timer_Channel_Config->TIM_CCR; break;
+		        case 1: TIMx->CCR2 = HAL_Timer_Channel_Config->TIM_CCR; break;
+		        case 2: TIMx->CCR3 = HAL_Timer_Channel_Config->TIM_CCR; break;
+		        case 3: TIMx->CCR4 = HAL_Timer_Channel_Config->TIM_CCR; break;
+		    }
+		}
+		else
+		{
+			// Cấu hình Input Capture Mode
+			HAL_TIM_Input_Capture_Mode_t *ic = &HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Capture_Mode;
+			uint32_t val = 0;
+			val |= (ic->HAL_Timer_Capture_Compare_Select & 0x3) << (shift + 0);       // CCxS
+			val |= (ic->HAL_Timer_Input_Capture_Prescaler_t & 0x3) << (shift + 2);    // ICxPSC
+			val |= (ic->HAL_TIM_Inputr_Capture_Filter & 0xF) << (shift + 4);          // ICxF
+			*ccmr |= val;
+		}
+    	if(HAL_Timer_Channel_Config->TimIrq == TIM_IRQ_ENABLE)
+    	{
+    		TIMx->DIER &= ~(1 << ( channel +1 )); /* Reset bit irq */
+    		TIMx->DIER |= ( 1 << (channel + 1));
+    	}
+        // Enable kênh trong CCER nếu cần
+        // Mỗi channel CCER chiếm 4 bit: CCxE (enable), CCxP (polarity)
+        TIMx->CCER |= (1 << (channel * 4)); // Bật CCxE mặc định
+    }
+}
 /*
  * @brief : Initializes the timer peripheral with the specified configuration
  * @param : TimerInit - Timer configuration structure
  */
 void HAL_Timer_Init(HAL_TimerInit_t* TimerInit)
 {
-
+	uint8_t channel = 0 ;
+	/*Setup prescale for timer*/
+    TimerInit->Timer->PSC = TimerInit->Prescale_Value;
+    /*Setup up autoreload value for time*/
+    TimerInit->Timer->ARR = TimerInit->Auto_Reload_Value;
+    /*Setup auto reload preload */
+    TimerInit->Timer->CR1 &= TIM_CR1_ARPE_Msk;
+    TimerInit->Timer->CR1 |= (TimerInit->HAL_Timer_ARPE <<TIM_CR1_ARPE_Pos);
+    /*Setup center aligned mode */
+    TimerInit->Timer->CR1 |= (TimerInit->HAL_Timer_Center_Aligned_Mode << TIM_CR1_CMS_Pos);
+    /*Setup conter up or counter down */
+    TimerInit->Timer->CR1 |= (TimerInit->HAL_Timer_Counter_Dir << TIM_CR1_DIR_Pos);
+    /*Setup timer stop at UEV ( Update event ) or not*/
+    TimerInit->Timer->CR1 |= (TimerInit->HAL_Timer_Mode << TIM_CR1_OPM_Pos);
+    /*Setup timer update request source */
+    TimerInit->Timer->CR1 |= (TimerInit->HAL_Timer_UpdateReqSrc << TIM_CR1_URS_Pos);
+    /*Setup timer update event, when disable the registers of tim does not update */
+    TimerInit->Timer->CR1 |= (TimerInit->HAL_Timer_UpdateEventState << TIM_CR1_UDIS_Pos);
+    for ( channel = 0 ; channel <= MAX_CHANNEL_TIMER; channel ++)
+    {
+        HAL_Timer_Channel_Config_t *HAL_Timer_Channel_Config = &TimerInit->HAL_Timer_Channel[channel];
+        HAL_Timer_ConfigChannel(TimerInit->Timer, channel, HAL_Timer_Channel_Config);
+    }
 }
 
 /*
