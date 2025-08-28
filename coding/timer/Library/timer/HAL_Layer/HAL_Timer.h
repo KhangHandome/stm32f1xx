@@ -22,45 +22,32 @@ typedef enum {
 } HAL_Timer_CounterMode_t;
 
 typedef enum {
-	CHANNEL_CONFIG_AS_OUTPUT_HIGH = 0x00,
-	CHANNEL_CONFIG_AS_INPUT_LOW   = 0x01
+	CHANNEL_CONFIG_OUTPUT_ACTIVE_HIGH  = 0x00,
+	CHANNEL_CONFIG_OUTPUT_ACTIVE_LOW   = 0x01
 } HAL_Timer_Channel_Config_Output_t;
 
 typedef enum {
-	CHANNEL_CONFIG_ENALBE = 0x01,
-	CHANNEL_CONFIG_DISABLE = 0x00
-} HAL_Timer_Chanel_Config_Enable_t;
-typedef enum {
-	CHANNEL_CONFIG_INPUT_RISING_EDGE = 0x00,
-	CHANNEL_CONFIG_INPUT_FAILING_EDGE = 0x01
+	CHANNEL_CONFIG_INPUT_RISING_EDGE = 0x00,  /* Capture by rising */
+	CHANNEL_CONFIG_INPUT_FAILING_EDGE = 0x01 /* Capture by faling  */
 } HAL_Timer_Channel_Config_Input_Edge_t;
 
 typedef union
 {
-	struct
-	{
-		HAL_Timer_Channel_Config_Output_t HAL_Timer_Channel_Config_Output;
-		HAL_Timer_Chanel_Config_Enable_t  HAL_Timer_Chanel_Config_Enable;
-	} Output ;
-
-	struct
-	{
-		HAL_Timer_Channel_Config_Input_Edge_t HAL_Timer_Channel_Config_Input_Edge;
-		HAL_Timer_Chanel_Config_Enable_t      HAL_Timer_Chanel_Config_Enable;
-	} Input ;
+	HAL_Timer_Channel_Config_Output_t HAL_Timer_Channel_Config_Output;
+	HAL_Timer_Channel_Config_Input_Edge_t HAL_Timer_Channel_Config_Input_Edge;
 } HAL_Channel_Config_Pin_t;
 
 typedef enum
 {
 	TIM_IRQ_ENABLE = 0x01,
 	TIM_IRQ_DISABLE = 0x00
-} TIM_IRQ_t;
+} HAL_Timer_IRQ;
 
 typedef enum
 {
-	HAL_TIM_ARPE_ENALBE = 0x01,
-	HAL_TIM_ARPE_DISABLE = 0x00
-} HAL_Timer_ARPE_t;
+	TIM_AUTO_RELOAD_ENALBE = 0x01,
+	TIM_AUTO_RELOAD_DISABLE = 0x00
+} TIM_AutoReload_t;
 
 typedef enum
 {
@@ -77,8 +64,8 @@ typedef enum
 } HAL_Timer_Counter_Dir_t;
 typedef enum
 {
-	HAL_TIM_ONE_PULSE_MODE,
-	HAL_TIM_CONTINUOUS_MODE
+	HAL_TIM_ONE_PULSE_MODE = 0x01,
+	HAL_TIM_CONTINUOUS_MODE = 0x00
 } HAL_Timer_Mode_t;
 
 // Bit 2 URS: Update Request Source
@@ -95,10 +82,10 @@ typedef enum {
 
 // CCxS: Capture/Compare selection (cho cả input/output)
 typedef enum {
-    HAL_TIM_CCxS_OUTPUT     = 0x0,    // 00: channel configured as output
-    HAL_TIM_CCxS_INPUT_TI1  = 0x1, // 01: input mapped on TIx
-    HAL_TIM_CCxS_INPUT_TI2  = 0x2, // 10: input mapped on opposite TIx
-    HAL_TIM_CCxS_INPUT_TRC  = 0x3  // 11: input mapped on TRC
+    HAL_TIM_COMPARE_OUTPUT     = 0x0,    // 00: channel configured as output
+    HAL_TIM_CAPTURE_INPUT_TI1  = 0x1, // 01: input mapped on TIx
+    HAL_TIM_CAPTURE_INPUT_TI2  = 0x2, // 10: input mapped on opposite TIx
+    HAL_TIM_CAPTURE_INPUT_TRC  = 0x3  // 11: input mapped on TRC
 } HAL_Timer_Capture_Compare_Select_t;
 
 // OCxM: Output Compare Mode
@@ -182,22 +169,23 @@ typedef enum
 typedef struct{
 
 	HAL_TIM_Channel_Enable_t HAL_TIM_Channel_Enable; /*Enable or disable */
-	uint16_t TIM_CCR; /*Timer capture compare register */
+	uint16_t HAL_TIM_Capture_Compare_Register; /*Timer capture compare register */
 	HAL_Channel_Config_Pin_t HAL_Channel_Config_Pin;
 	HAL_TIM_Capture_Compare_Mode_t HAL_TIM_Capture_Compare_Mode;
-    TIM_IRQ_t TimIrq; /* Enable or disable Interrupt */
+	HAL_Timer_IRQ HAL_TIM_Capture_Compare_IRQ; /* Enable or disable Interrupt */
 } HAL_Timer_Channel_Config_t;
 
 typedef struct {
     TIM_TypeDef* Timer;             /* Timer instance */
     uint16_t Prescale_Value;                   /* Setup prescaler */
     uint16_t Auto_Reload_Value;                   /* Setup auto-reload value */
-    HAL_Timer_ARPE_t HAL_Timer_ARPE;/* Arpe disabe or enable */
+    TIM_AutoReload_t TIM_AutoReloadEnable;/* Arpe disabe or enable */
     HAL_Timer_Center_Aligned_Mode_t HAL_Timer_Center_Aligned_Mode ;
     HAL_Timer_Counter_Dir_t HAL_Timer_Counter_Dir ;   /*Direction of CNT, counting up or counting down */
     HAL_Timer_Mode_t HAL_Timer_Mode;  /* Select mode for timer, once times, for continuous */
     HAL_Timer_UpdateReqSrc_t HAL_Timer_UpdateReqSrc; /* Select update request */
     HAL_Timer_UpdateEventState_t HAL_Timer_UpdateEventState;
+    HAL_Timer_IRQ Timer_Irq;
     HAL_Timer_Channel_Config_t HAL_Timer_Channel[MAX_CHANNEL_TIMER]; /* Config for each channel */
     CallbackFunction_t CallbackFunction; /*Callback function */
 } HAL_TimerInit_t;

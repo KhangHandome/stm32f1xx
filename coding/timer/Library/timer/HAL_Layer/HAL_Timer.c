@@ -29,7 +29,7 @@ static void HAL_Timer_ConfigChannel(TIM_TypeDef *TIMx, uint8_t channel, HAL_Time
 
     if ( HAL_Timer_Channel_Config->HAL_TIM_Channel_Enable == HAL_TIM_Channel_Enable)
     {
-    	if (HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Compare_Mode.HAL_Timer_Capture_Compare_Select == HAL_TIM_CCxS_OUTPUT)
+    	if (HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Compare_Mode.HAL_Timer_Capture_Compare_Select == HAL_TIM_COMPARE_OUTPUT)
 		{
 			// Cấu hình Output Compare Mode
 			HAL_TIM_Output_Compare_Mode_t *oc = &HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Compare_Mode;
@@ -42,11 +42,12 @@ static void HAL_Timer_ConfigChannel(TIM_TypeDef *TIMx, uint8_t channel, HAL_Time
 			*ccmr |= val;
 		    // Thiết lập giá trị CCR ban đầu
 		    switch(channel) {
-		        case 0: TIMx->CCR1 = HAL_Timer_Channel_Config->TIM_CCR; break;
-		        case 1: TIMx->CCR2 = HAL_Timer_Channel_Config->TIM_CCR; break;
-		        case 2: TIMx->CCR3 = HAL_Timer_Channel_Config->TIM_CCR; break;
-		        case 3: TIMx->CCR4 = HAL_Timer_Channel_Config->TIM_CCR; break;
+		        case 0: TIMx->CCR1 = HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Register; break;
+		        case 1: TIMx->CCR2 = HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Register; break;
+		        case 2: TIMx->CCR3 = HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Register; break;
+		        case 3: TIMx->CCR4 = HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Register; break;
 		    }
+		    TIMx->CCER |= ((uint8_t)HAL_Timer_Channel_Config->HAL_Channel_Config_Pin.HAL_Timer_Channel_Config_Output << (channel * 4 + TIM_CCER_CC1P_Pos)); // Config Capture/Compare 1 output polarity
 		}
 		else
 		{
@@ -57,8 +58,9 @@ static void HAL_Timer_ConfigChannel(TIM_TypeDef *TIMx, uint8_t channel, HAL_Time
 			val |= (ic->HAL_Timer_Input_Capture_Prescaler_t & 0x3) << (shift + 2);    // ICxPSC
 			val |= (ic->HAL_TIM_Inputr_Capture_Filter & 0xF) << (shift + 4);          // ICxF
 			*ccmr |= val;
+		    TIMx->CCER |= ( (uint8_t)HAL_Timer_Channel_Config->HAL_Channel_Config_Pin.HAL_Timer_Channel_Config_Input_Edge << (channel * 4 + TIM_CCER_CC1P_Pos)); // Config Capture/Compare 1 output polarity
 		}
-    	if(HAL_Timer_Channel_Config->TimIrq == TIM_IRQ_ENABLE)
+    	if(HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_IRQ == TIM_IRQ_ENABLE)
     	{
     		TIMx->DIER &= ~(1 << ( channel +1 )); /* Reset bit irq */
     		TIMx->DIER |= ( 1 << (channel + 1));
@@ -81,7 +83,7 @@ void HAL_Timer_Init(HAL_TimerInit_t* TimerInit)
     TimerInit->Timer->ARR = TimerInit->Auto_Reload_Value;
     /*Setup auto reload preload */
     TimerInit->Timer->CR1 &= TIM_CR1_ARPE_Msk;
-    TimerInit->Timer->CR1 |= (TimerInit->HAL_Timer_ARPE <<TIM_CR1_ARPE_Pos);
+    TimerInit->Timer->CR1 |= (TimerInit->TIM_AutoReloadEnable <<TIM_CR1_ARPE_Pos);
     /*Setup center aligned mode */
     TimerInit->Timer->CR1 |= (TimerInit->HAL_Timer_Center_Aligned_Mode << TIM_CR1_CMS_Pos);
     /*Setup conter up or counter down */
@@ -92,7 +94,9 @@ void HAL_Timer_Init(HAL_TimerInit_t* TimerInit)
     TimerInit->Timer->CR1 |= (TimerInit->HAL_Timer_UpdateReqSrc << TIM_CR1_URS_Pos);
     /*Setup timer update event, when disable the registers of tim does not update */
     TimerInit->Timer->CR1 |= (TimerInit->HAL_Timer_UpdateEventState << TIM_CR1_UDIS_Pos);
-    for ( channel = 0 ; channel <= MAX_CHANNEL_TIMER; channel ++)
+    /*Setup interrupt for timer */
+    TimerInit->Timer->DIER |= ( TimerInit->Timer_Irq << TIM_DIER_UIE_Pos);
+    for ( channel = 0 ; channel < MAX_CHANNEL_TIMER; channel ++)
     {
         HAL_Timer_Channel_Config_t *HAL_Timer_Channel_Config = &TimerInit->HAL_Timer_Channel[channel];
         HAL_Timer_ConfigChannel(TimerInit->Timer, channel, HAL_Timer_Channel_Config);
