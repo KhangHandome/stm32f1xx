@@ -49,7 +49,9 @@ static void HAL_Timer_ConfigChannel(TIM_TypeDef *TIMx, uint8_t channel, HAL_Time
 		    }
 		    TIMx->CCER |= ((uint8_t)HAL_Timer_Channel_Config->HAL_Channel_Config_Pin.HAL_Timer_Channel_Config_Output << (channel * 4 + TIM_CCER_CC1P_Pos)); // Config Capture/Compare 1 output polarity
 		}
-		else
+		else if ( HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Capture_Mode.HAL_Timer_Capture_Compare_Select == HAL_TIM_CAPTURE_INPUT_TI1
+				|| HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Capture_Mode.HAL_Timer_Capture_Compare_Select == HAL_TIM_CAPTURE_INPUT_TI2
+				|| HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Capture_Mode.HAL_Timer_Capture_Compare_Select == HAL_TIM_CAPTURE_INPUT_TRC)
 		{
 			// Cấu hình Input Capture Mode
 			HAL_TIM_Input_Capture_Mode_t *ic = &HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Capture_Mode;
@@ -111,7 +113,37 @@ void HAL_Timer_Setup(HAL_TimerInit_t* TimerInit)
 {
 
 }
+void HAL_Timer_Stop(HAL_TimerInit_t * TimerInit);
 
+void HAL_Timer_ChangePSC(HAL_TimerInit_t* TimerInit,uint16_t PSC)
+{
+	TimerInit->Timer->PSC = PSC;
+}
+
+void HAL_Timer_ChangeARR(HAL_TimerInit_t* TimerInit,uint16_t ARR)
+{
+	TimerInit->Timer->ARR = ARR;
+}
+
+void HAL_Timer_Set_CCR(HAL_TimerInit_t* TimerInit,uint8_t Channel, uint16_t CCR)
+{
+	if (TimerInit->HAL_Timer_Channel[Channel].HAL_TIM_Capture_Compare_Mode.Compare_Mode.HAL_Timer_Capture_Compare_Select == HAL_TIM_COMPARE_OUTPUT)
+	{
+		switch (Channel)
+		{
+			case 1 : TimerInit->Timer->CCR1 = CCR; break ;
+			case 2 : TimerInit->Timer->CCR1 = CCR; break ;
+			case 3 : TimerInit->Timer->CCR1 = CCR; break ;
+			case 4 : TimerInit->Timer->CCR1 = CCR; break ;
+			default : break ;
+		}
+	}
+}
+
+void HAL_Timer_Set_Input_Edge(HAL_TimerInit_t* TimerInit,uint8_t channel, HAL_Timer_Channel_Config_Input_Edge_t Config_Input_Edge)
+{
+	TimerInit->HAL_Timer_Channel[channel].HAL_Channel_Config_Pin.HAL_Timer_Channel_Config_Input_Edge = Config_Input_Edge;
+}
 /*
  * @brief : Starts the timer with the specified configuration
  * @param : TimerInit - Timer configuration structure
@@ -141,19 +173,39 @@ void HAL_Timer_Set_CallbackFunction(HAL_TimerInit_t* TimerInit)
  * @brief : Clears the timer's interrupt flag
  * @param : TimerInit - Timer configuration structure
  */
-void HAL_Timer_ClearInterruptFlag(HAL_TimerInit_t* TimerInit){}
+void HAL_Timer_ClearInterruptFlag(HAL_TimerInit_t* TimerInit)
+{
+	TimerInit->Timer->SR &= 0 ;
+}
 
 /*
  * @brief : Returns the timer's interrupt flag status
  * @param : TimerInit - Timer configuration structure
  */
-void HAL_Timer_GetInterruptFlag(HAL_TimerInit_t* TimerInit){}
+uint16_t HAL_Timer_GetInterruptFlag(HAL_TimerInit_t* TimerInit)
+{
+	uint16_t retVal= 0 ;
+	retVal = TimerInit->Timer->SR;
+	return retVal;
+}
 
 /*
  * @brief : Returns the value of the capture/compare register
  * @param : TimerInit - Timer configuration structure
  */
-void HAL_Timer_GetCapture_CompareRegister(HAL_TimerInit_t* TimerInit){}
+uint16_t HAL_Timer_GetCapture_CompareRegister(HAL_TimerInit_t* TimerInit,uint8_t channel)
+{
+	uint16_t retVal = 0 ;
+	switch (channel)
+	{
+		case 1 : retVal = TimerInit->Timer->CCR1; break ;
+		case 2 : retVal = TimerInit->Timer->CCR2; break ;
+		case 3 : retVal = TimerInit->Timer->CCR3; break ;
+		case 4 : retVal = TimerInit->Timer->CCR4; break ;
+		default : break ;
+	}
+	return retVal;
+}
 
 /*
  * @brief : Interrupt Service Routine for TIM1 Break interrupt

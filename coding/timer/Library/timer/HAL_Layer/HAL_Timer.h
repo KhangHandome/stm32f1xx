@@ -202,6 +202,16 @@ extern void HAL_Timer_Init(HAL_TimerInit_t* TimerInit);
  */
 extern void HAL_Timer_Setup(HAL_TimerInit_t* TimerInit);
 
+extern void HAL_Timer_Stop(HAL_TimerInit_t * TimerInit);
+
+extern void HAL_Timer_ChangePSC(HAL_TimerInit_t* TimerInit,uint16_t PSC);
+
+extern void HAL_Timer_ChangeARR(HAL_TimerInit_t* TimerInit,uint16_t ARR);
+
+extern void HAL_Timer_Set_CCR(HAL_TimerInit_t* TimerInit,uint8_t Channel, uint16_t CCR);
+
+extern void HAL_Timer_Set_Input_Edge(HAL_TimerInit_t* TimerInit,uint8_t Channel, HAL_Timer_Channel_Config_Input_Edge_t Config_Input_Edge);
+
 /*
  * @brief : Starts the timer with the specified configuration
  * @param : TimerInit - Timer configuration structure
@@ -224,12 +234,12 @@ extern void HAL_Timer_ClearInterruptFlag(HAL_TimerInit_t* TimerInit);
  * @brief : Returns the timer's interrupt flag status
  * @param : TimerInit - Timer configuration structure
  */
-extern void HAL_Timer_GetInterruptFlag(HAL_TimerInit_t* TimerInit);
+extern uint16_t HAL_Timer_GetInterruptFlag(HAL_TimerInit_t* TimerInit);
 
 /*
  * @brief : Returns the value of the capture/compare register
  * @param : TimerInit - Timer configuration structure
  */
-extern void HAL_Timer_GetCapture_CompareRegister(HAL_TimerInit_t* TimerInit);
+extern uint16_t HAL_Timer_GetCapture_CompareRegister(HAL_TimerInit_t* TimerInit,uint8_t channel);
 
 #endif
