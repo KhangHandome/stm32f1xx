@@ -29,12 +29,12 @@ static void HAL_Timer_ConfigChannel(TIM_TypeDef *TIMx, uint8_t channel, HAL_Time
 
     if ( HAL_Timer_Channel_Config->HAL_TIM_Channel_Enable == HAL_TIM_Channel_Enable)
     {
-    	if (HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Compare_Mode.HAL_Timer_Capture_Compare_Select == HAL_TIM_COMPARE_OUTPUT)
+    	if (HAL_Timer_Channel_Config->HAL_Timer_Capture_Compare_Select == HAL_TIM_COMPARE_OUTPUT)
 		{
 			// Cấu hình Output Compare Mode
 			HAL_TIM_Output_Compare_Mode_t *oc = &HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Compare_Mode;
 			uint16_t val = 0;
-			val |= (oc->HAL_Timer_Capture_Compare_Select & 0x3) << (shift + 0);  // CCxS
+			val |= (HAL_Timer_Channel_Config->HAL_Timer_Capture_Compare_Select & 0x3) << (shift + 0);  // CCxS
 			val |= (oc->Output_Compare_Fast_Enable & 0x1) << (shift + 2);         // OCxFE
 			val |= (oc->Output_Compare_Preload & 0x1) << (shift + 3);             // OCxPE
 			val |= (oc->HAL_Timer_Output_Compare_Mode & 0x7) << (shift + 4);      // OCxM
@@ -49,14 +49,14 @@ static void HAL_Timer_ConfigChannel(TIM_TypeDef *TIMx, uint8_t channel, HAL_Time
 		    }
 		    TIMx->CCER |= ((uint8_t)HAL_Timer_Channel_Config->HAL_Channel_Config_Pin.HAL_Timer_Channel_Config_Output << (channel * 4 + TIM_CCER_CC1P_Pos)); // Config Capture/Compare 1 output polarity
 		}
-		else if ( HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Capture_Mode.HAL_Timer_Capture_Compare_Select == HAL_TIM_CAPTURE_INPUT_TI1
-				|| HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Capture_Mode.HAL_Timer_Capture_Compare_Select == HAL_TIM_CAPTURE_INPUT_TI2
-				|| HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Capture_Mode.HAL_Timer_Capture_Compare_Select == HAL_TIM_CAPTURE_INPUT_TRC)
+		else if ( HAL_Timer_Channel_Config->HAL_Timer_Capture_Compare_Select == HAL_TIM_CAPTURE_INPUT_TI1
+				|| HAL_Timer_Channel_Config->HAL_Timer_Capture_Compare_Select == HAL_TIM_CAPTURE_INPUT_TI2
+				|| HAL_Timer_Channel_Config->HAL_Timer_Capture_Compare_Select == HAL_TIM_CAPTURE_INPUT_TRC)
 		{
 			// Cấu hình Input Capture Mode
 			HAL_TIM_Input_Capture_Mode_t *ic = &HAL_Timer_Channel_Config->HAL_TIM_Capture_Compare_Mode.Capture_Mode;
 			uint32_t val = 0;
-			val |= (ic->HAL_Timer_Capture_Compare_Select & 0x3) << (shift + 0);       // CCxS
+			val |= (HAL_Timer_Channel_Config->HAL_Timer_Capture_Compare_Select & 0x3) << (shift + 0);       // CCxS
 			val |= (ic->HAL_Timer_Input_Capture_Prescaler_t & 0x3) << (shift + 2);    // ICxPSC
 			val |= (ic->HAL_TIM_Inputr_Capture_Filter & 0xF) << (shift + 4);          // ICxF
 			*ccmr |= val;
@@ -113,7 +113,10 @@ void HAL_Timer_Setup(HAL_TimerInit_t* TimerInit)
 {
 
 }
-void HAL_Timer_Stop(HAL_TimerInit_t * TimerInit);
+void HAL_Timer_Stop(HAL_TimerInit_t * TimerInit)
+{
+	TimerInit->Timer->CR1 &= (~TIM_CR1_CEN);
+}
 
 void HAL_Timer_ChangePSC(HAL_TimerInit_t* TimerInit,uint16_t PSC)
 {
@@ -127,7 +130,7 @@ void HAL_Timer_ChangeARR(HAL_TimerInit_t* TimerInit,uint16_t ARR)
 
 void HAL_Timer_Set_CCR(HAL_TimerInit_t* TimerInit,uint8_t Channel, uint16_t CCR)
 {
-	if (TimerInit->HAL_Timer_Channel[Channel].HAL_TIM_Capture_Compare_Mode.Compare_Mode.HAL_Timer_Capture_Compare_Select == HAL_TIM_COMPARE_OUTPUT)
+	if (TimerInit->HAL_Timer_Channel[Channel].HAL_Timer_Capture_Compare_Select == HAL_TIM_COMPARE_OUTPUT)
 	{
 		switch (Channel)
 		{
@@ -157,16 +160,33 @@ void HAL_Timer_Start(HAL_TimerInit_t* TimerInit)
  * @brief : Sets the callback function for timer interrupts
  * @param : TimerInit - Timer configuration structure
  */
+// -------------------- API: Register callback --------------------
 void HAL_Timer_Set_CallbackFunction(HAL_TimerInit_t* TimerInit)
 {
-	switch ((uint32_t)(TimerInit->Timer))
-	{
-		case (uint32_t) TIM1: break ;
-		case (uint32_t) TIM2:
-			CallbackFunction_TIM2 = TimerInit->CallbackFunction;
-			break ;
-		default : break ;
-	}
+    if (TimerInit == NULL) return;
+
+    switch ((uint32_t)(TimerInit->Timer))
+    {
+        case (uint32_t)TIM1:
+            CallbackFunction_TIM1 = TimerInit->CallbackFunction;
+            break;
+
+        case (uint32_t)TIM2:
+            CallbackFunction_TIM2 = TimerInit->CallbackFunction;
+            break;
+
+        case (uint32_t)TIM3:
+            CallbackFunction_TIM3 = TimerInit->CallbackFunction;
+            break;
+
+        case (uint32_t)TIM4:
+            CallbackFunction_TIM4 = TimerInit->CallbackFunction;
+            break;
+
+        default:
+            // Unsupported timer
+            break;
+    }
 }
 
 /*
@@ -248,6 +268,45 @@ void TIM1_TRG_COM_IRQHandler(void) {
         }
     }
 }
+/*
+ * @brief : Check interrupt source
+ * */
+HAL_Timer_InterruptSource_t HAL_Timer_GetInterruptSource(HAL_TimerInit_t *TimerInit)
+{
+    HAL_Timer_InterruptSource_t retVal = TIMER_INT_NONE;
+    TIM_TypeDef *TIMx = TimerInit->Timer;   // lấy con trỏ đến TIMx
+    volatile uint16_t temp = TIMx->SR;
+    if ((temp & TIM_SR_UIF) && (TIMx->DIER & TIM_DIER_UIE)) {
+        TIMx->SR &= ~TIM_SR_UIF;
+        retVal = TIMER_INT_UPDATE;
+    }
+    else if ((temp & TIM_SR_CC1IF) && (TIMx->DIER & TIM_DIER_CC1IE)) {
+        TIMx->SR &= ~TIM_SR_CC1IF;
+        retVal = TIMER_INT_CC1;
+    }
+    else if ((temp & TIM_SR_CC2IF) && (TIMx->DIER & TIM_DIER_CC2IE)) {
+        TIMx->SR &= ~TIM_SR_CC2IF;
+        retVal = TIMER_INT_CC2;
+    }
+    else if ((temp & TIM_SR_CC3IF) && (TIMx->DIER & TIM_DIER_CC3IE)) {
+        TIMx->SR &= ~TIM_SR_CC3IF;
+        retVal = TIMER_INT_CC3;
+    }
+    else if ((temp & TIM_SR_CC4IF) && (TIMx->DIER & TIM_DIER_CC4IE)) {
+        TIMx->SR &= ~TIM_SR_CC4IF;
+        retVal = TIMER_INT_CC4;
+    }
+    else if ((temp & TIM_SR_TIF) && (TIMx->DIER & TIM_DIER_TIE)) {
+        TIMx->SR &= ~TIM_SR_TIF;
+        retVal = TIMER_INT_TRIGGER;
+    }
+    else if ((temp & TIM_SR_BIF) && (TIMx->DIER & TIM_DIER_BIE)) {
+        TIMx->SR &= ~TIM_SR_BIF;
+        retVal = TIMER_INT_BREAK;
+    }
+
+    return retVal;
+}
 
 /*
  * @brief : Interrupt Service Routine for TIM1 Capture/Compare interrupt
@@ -264,13 +323,12 @@ void TIM1_CC_IRQHandler(void) {
 /*
  * @brief : Interrupt Service Routine for TIM2 Update interrupt
  */
-void TIM2_IRQHandler(void) {
-    if (TIM2->SR & TIM_SR_UIF) { /* Check if Update interrupt flag is set */
-        TIM2->SR &= ~TIM_SR_UIF; /* Clear Update interrupt flag */
-        if (CallbackFunction_TIM2 != NULL) { /* Check if callback is set */
-            CallbackFunction_TIM2(); /* Call the user-defined callback */
-        }
-    }
+void TIM2_IRQHandler(void)
+{
+	if(CallbackFunction_TIM2 != NULL)
+	{
+		CallbackFunction_TIM2();
+	}
 }
 
 /*
