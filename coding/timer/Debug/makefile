@@ -62,8 +62,13 @@ all: main-build
 main-build: timer.elf secondary-outputs
 
 # Tool invocations
+<<<<<<< HEAD
 timer.elf timer.map: $(OBJS) $(USER_OBJS) /media/khangmt/6008FB9808FB6C02/Users/maith/Documents/GitWork/stm32f1xx/coding/timer/STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	arm-none-eabi-gcc -o "timer.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/media/khangmt/6008FB9808FB6C02/Users/maith/Documents/GitWork/stm32f1xx/coding/timer/STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="timer.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+=======
+timer.elf timer.map: $(OBJS) $(USER_OBJS) /home/khangmt/Documents/GitWork/stm32f1xx/coding/timer/STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "timer.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/home/khangmt/Documents/GitWork/stm32f1xx/coding/timer/STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="timer.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+>>>>>>> 577c4389665029f4d923455370503e00bef7ac2d
 	@echo 'Finished building target: $@'
 	@echo ' '
 
