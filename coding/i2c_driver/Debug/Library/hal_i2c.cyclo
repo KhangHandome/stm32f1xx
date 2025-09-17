@@ -1,0 +1,12 @@
+../Drivers/CMSIS/Include/core_cm3.h:1511:22:__NVIC_EnableIRQ	2
+../Library/hal_i2c.c:22:6:HAL_IP_I2C_Init	1
+../Library/hal_i2c.c:53:6:HAL_IP_I2C_EnableISR	1
+../Library/hal_i2c.c:94:10:HAL_IP_I2C_Receive	7
+../Library/hal_i2c.c:144:10:HAL_IP_I2C_Transmit	6
+../Library/hal_i2c.c:189:10:HAL_IP_I2C_Master_Transmit	6
+../Library/hal_i2c.c:232:10:HAL_IP_I2C_Master_Receive	8
+../Library/hal_i2c.c:287:10:HAL_IP_I2C_Slave_Receive_IT	1
+../Library/hal_i2c.c:300:16:HAL_IP_I2C_GetTxFlag	1
+../Library/hal_i2c.c:305:16:HAL_IP_I2C_GetRxFlag	1
+../Library/hal_i2c.c:309:6:I2C1_EV_IRQHandler	7
+../Library/hal_i2c.c:365:6:I2C1_ER_IRQHandler	1

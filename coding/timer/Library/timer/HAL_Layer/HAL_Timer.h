@@ -108,6 +108,19 @@ typedef enum {
     HAL_TIM_ICPSC_DIV8 = 0x3  // Capture once every 8 events
 } HAL_Timer_Input_Capture_Prescaler_t;
 
+/*
+ * @brief : Interrupt source typedef
+ */
+typedef enum {
+    TIMER_INT_NONE    = 0,
+    TIMER_INT_UPDATE  = 1,
+    TIMER_INT_CC1     = 2,
+    TIMER_INT_CC2     = 3,
+    TIMER_INT_CC3     = 4,
+    TIMER_INT_CC4     = 5,
+    TIMER_INT_TRIGGER = 6,
+    TIMER_INT_BREAK   = 7
+} HAL_Timer_InterruptSource_t;
 /**
  * @brief: Input capture filter values
  * @details: Defines digital filtering for input capture to reduce noise.
@@ -140,7 +153,6 @@ typedef enum {
 
 // Bitfield cho chế độ OUTPUT (OC)
 typedef struct {
-	HAL_Timer_Capture_Compare_Select_t HAL_Timer_Capture_Compare_Select ;   // bit 1:0
     HAL_TIM_BitState_t Output_Compare_Fast_Enable ; // bit 2
     HAL_TIM_BitState_t Output_Compare_Preload; // bit 3
     HAL_Timer_Output_Compare_Mode_t HAL_Timer_Output_Compare_Mode ; // bit 6:4
@@ -149,7 +161,6 @@ typedef struct {
 
 // Bitfield cho chế độ INPUT (IC)
 typedef struct {
-	HAL_Timer_Capture_Compare_Select_t HAL_Timer_Capture_Compare_Select ;   // bit 1:0
 	HAL_Timer_Input_Capture_Prescaler_t HAL_Timer_Input_Capture_Prescaler_t ; // bit 3:2
 	HAL_TIM_Inputr_Capture_Filter_t HAL_TIM_Inputr_Capture_Filter ;   // bit 7:4
 } HAL_TIM_Input_Capture_Mode_t;
@@ -167,8 +178,8 @@ typedef enum
  * @brief : Structure to hold timer configuration including timer instance, prescaler, auto-reload value, timer mode, counter mode, and capture/compare registers
  */
 typedef struct{
-
 	HAL_TIM_Channel_Enable_t HAL_TIM_Channel_Enable; /*Enable or disable */
+	HAL_Timer_Capture_Compare_Select_t HAL_Timer_Capture_Compare_Select;  /* Mode output compare or input capture */
 	uint16_t HAL_TIM_Capture_Compare_Register; /*Timer capture compare register */
 	HAL_Channel_Config_Pin_t HAL_Channel_Config_Pin;
 	HAL_TIM_Capture_Compare_Mode_t HAL_TIM_Capture_Compare_Mode;
@@ -235,6 +246,8 @@ extern void HAL_Timer_ClearInterruptFlag(HAL_TimerInit_t* TimerInit);
  * @param : TimerInit - Timer configuration structure
  */
 extern uint16_t HAL_Timer_GetInterruptFlag(HAL_TimerInit_t* TimerInit);
+
+extern HAL_Timer_InterruptSource_t HAL_Timer_GetInterruptSource(HAL_TimerInit_t *TimerInit);
 
 /*
  * @brief : Returns the value of the capture/compare register
