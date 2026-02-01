@@ -1,0 +1,13 @@
+../EXT_Library/Src/DRV_Lora.c:13:20:DRV_LoraInit	24	static
+../EXT_Library/Src/DRV_Lora.c:112:20:DRV_LoraDeinit	24	static
+../EXT_Library/Src/DRV_Lora.c:122:20:DRV_LoraSwitchMode	24	static
+../EXT_Library/Src/DRV_Lora.c:138:20:DRV_LoraTransmit	32	static
+../EXT_Library/Src/DRV_Lora.c:176:20:DRV_LoraReceive	32	static
+../EXT_Library/Src/DRV_Lora.c:219:20:DRV_LoraConfigFrequency	24	static
+../EXT_Library/Src/DRV_Lora.c:228:20:DRV_LoraConfigInterrupt	24	static
+../EXT_Library/Src/DRV_Lora.c:233:20:DRV_Lora_IRQHandler	24	static
+../EXT_Library/Src/DRV_Lora.c:238:9:DRV_Lora_GetVersion	24	static
+../EXT_Library/Src/DRV_Lora.c:251:27:DRV_Lora_ReadRegister	32	static
+../EXT_Library/Src/DRV_Lora.c:282:27:DRV_Lora_WriteRegister	24	static
+../EXT_Library/Src/DRV_Lora.c:313:27:DRV_Lora_ReadFifo	32	static
+../EXT_Library/Src/DRV_Lora.c:349:27:DRV_Lora_WriteFifo	32	static
