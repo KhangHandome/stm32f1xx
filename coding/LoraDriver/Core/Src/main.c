@@ -55,6 +55,28 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+LORA_HandleTypedef Lora_Instance_0 =
+{
+		.SPI_Instance    = &hspi1,
+		.ChipSelectPin   = LORA_CS_PIN_Pin,
+		.ChipSelectPort  = LORA_CS_PIN_GPIO_Port,
+		.ResetPin        = LORA_RST_PIN_Pin,
+		.ResetPort       = LORA_RST_PIN_GPIO_Port,
+		.Dio_0_Pin       = LORA_DIO0_PIN_Pin,
+		.Dio_0_Port      = LORA_DIO0_PIN_GPIO_Port,
+		.OperationMode   = LORA_MODE_INTERRUPT,
+		.Bandwidth       = LORA_BW_125_KHZ,
+		.Frequency       = 433000000,
+		.SpreadingFactor = LORA_SF_7,
+		.CodingRate      = LORA_CR_4_5,
+		.Power           = LORA_POWER_BALANCE,
+		.RxCallback      = (void*)(0x00),
+		.TxCallback      = (void*)(0x00)
+
+};
+
+char *data_test = "Testing transmit and receive for module LoRa";
+uint8_t data_rev[50] = {0};
 
 /* USER CODE END 0 */
 
@@ -64,29 +86,8 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
-
-	char *data_test = "Testing transmit and receive for module LoRa";
-	uint8_t data_rev[50] = {0};
   /* USER CODE BEGIN 1 */
-	LORA_HandleTypedef Lora_Instance_0 =
-	{
-			.SPI_Instance    = &hspi1,
-			.ChipSelectPin   = LORA_CS_PIN_Pin,
-			.ChipSelectPort  = LORA_CS_PIN_GPIO_Port,
-			.ResetPin        = LORA_RST_PIN_Pin,
-			.ResetPort       = LORA_RST_PIN_GPIO_Port,
-			.Dio_0_Pin       = LORA_DIO0_PIN_Pin,
-			.Dio_0_Port      = LORA_DIO0_PIN_GPIO_Port,
-			.OperationMode   = LORA_MODE_POLLING,
-			.Bandwidth       = LORA_BW_125_KHZ,
-			.Frequency       = 433000000,
-			.SpreadingFactor = LORA_SF_7,
-			.CodingRate      = LORA_CR_4_5,
-			.Power           = LORA_POWER_BALANCE,
-			.RxCallback      = (void*)(0x00),
-			.TxCallback      = (void*)(0x00)
 
-	};
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -110,6 +111,9 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   DRV_LoraInit(&Lora_Instance_0);
+  DRV_LoraSwitchMode(&Lora_Instance_0, LORA_RECEIVE_CONTINUOUS_STATE);
+  NVIC_EnableIRQ(EXTI0_IRQn);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -119,9 +123,26 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+//	  MASTER
 //	  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) data_test, 50);
-	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50);
-	  HAL_Delay(500);
+//	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50);
+//	  HAL_Delay(500);
+//    Slave
+//	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50);
+//	  if(data_rev[0] == 'T')
+//	  {
+//		  HAL_Delay(1);
+//		  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50);
+//		  data_rev[0] = '\0';
+//	  }
+	  if(data_rev[0] == 'T')
+	  {
+		  HAL_Delay(10);
+		  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50);
+		  DRV_LoraSwitchMode(&Lora_Instance_0, LORA_RECEIVE_CONTINUOUS_STATE);
+	  	  data_rev[0] = '\0';
+	  }
+
   }
   /* USER CODE END 3 */
 }
@@ -163,7 +184,11 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void EXTI0_IRQHandler()
+{
+	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50);
+    __HAL_GPIO_EXTI_CLEAR_IT(LORA_DIO0_PIN_Pin);
+}
 /* USER CODE END 4 */
 
 /**

@@ -93,6 +93,17 @@ LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
 	// Cấu hình thêm RegPaDac để đảm bảo độ ổn định công suất
 	DRV_Lora_WriteRegister(LORA_Instance, 0x4D, pa_dac_val);
 
+    /* Setup for interrupt using pin DIO0 */
+    if (LORA_Instance->OperationMode == LORA_MODE_INTERRUPT)
+    {
+        DRV_Lora_WriteRegister(LORA_Instance,REG_IRQ_FLAGS_MASK, 0xFF & (~(1 <<3 | 1 << 6)));
+    }
+    else
+    {
+        DRV_Lora_WriteRegister(LORA_Instance,REG_IRQ_FLAGS_MASK, 0x00 );
+    }
+    
+
     /* Clear IRQ */
 	DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
 
@@ -119,26 +130,34 @@ LORA_ReturnTypedef DRV_LoraDeinit(LORA_HandleTypedef* LORA_Instance)
     HAL_Delay(20);
     return retVal;
 }
+
 LORA_ReturnTypedef DRV_LoraSwitchMode(LORA_HandleTypedef* LORA_Instance, Lora_State_t LoraState)
 {
-	LORA_ReturnTypedef retVal = 0 ;
-	uint8_t l_currentState = 0 ;
-	/* Read current state */
-	DRV_Lora_ReadRegister(LORA_Instance, REG_OP_MODE, &l_currentState);
+    uint8_t l_currentState = 0;
 
-	if ( (l_currentState & LORA_STANDBY_STATE) != LORA_STANDBY_STATE )
-	{
-		/* Go standby sate */
-		DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, LORA_STANDBY_STATE);
-	}
-	/* Go new state	 */
-	DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, LoraState);
-	return retVal;
+    /* Read current operating mode */
+    DRV_Lora_ReadRegister(LORA_Instance, REG_OP_MODE, &l_currentState);
+
+    /* Check if the requested mode is different from the current mode (masking last 3 bits) */
+    if ((l_currentState & 0x07) != LoraState)
+    {
+        /* * Force the device into Standby mode before switching to the new mode.
+         * This ensures the PLL (Phase-Locked Loop) stabilizes.
+         * 0x80 is used to maintain Bit 7 (LongRangeMode = 1) for LoRa mode.
+         */
+        DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, 0x80 | 0x01);
+
+        /* Set the new requested operating mode (keeping LoRa mode bit active) */
+        DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, 0x80 | LoraState);
+    }
+
+    return STD_E_OK;
 }
 LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* PtrSourceData, uint16_t length)
 {
 	LORA_ReturnTypedef retVal = 0 ;
 	uint8_t l_irqStatus = 0 ;
+	uint16_t l_timeout  = 20000 ;
 	/* Switch mode of LoRa to standby  */
 	DRV_LoraSwitchMode(LORA_Instance, LORA_STANDBY_STATE);
 
@@ -158,7 +177,7 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
 	/* Polling bit TX Transmit done */
 	if(LORA_Instance->OperationMode == LORA_MODE_POLLING)
 	{
-		while( (l_irqStatus & (1 << 3)) == 0 )
+		while( (l_irqStatus & (1 << 3)) == 0 && l_timeout -- )
 		{
 			DRV_Lora_ReadRegister(LORA_Instance, REG_IRQ_FLAGS, &l_irqStatus);
 		}
@@ -179,14 +198,14 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
 	uint8_t l_irqStatus = 0 ;
 	uint8_t l_rx_address = 0 ;
 	uint8_t l_length = 0 ;
-
-	/* Switch mode of LoRa to RX_Continuos  */
-	DRV_LoraSwitchMode(LORA_Instance, LORA_RECEIVE_CONTINUOUS_STATE);
-
+	uint16_t l_timeout = 20000 ;
 	/* Polling bit TX Transmit done */
 	if(LORA_Instance->OperationMode == LORA_MODE_POLLING)
 	{
-		while( (l_irqStatus & (1 << 6)) == 0 )
+		/* Switch mode of LoRa to RX_Continuos  */
+		DRV_LoraSwitchMode(LORA_Instance, LORA_RECEIVE_CONTINUOUS_STATE);
+
+		while( (l_irqStatus & (1 << 6)) == 0 && l_timeout --)
 		{
 			DRV_Lora_ReadRegister(LORA_Instance, REG_IRQ_FLAGS, &l_irqStatus);
 		}
@@ -211,6 +230,23 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
 	}
 	else
 	{
+		/* Read address of Rx_Base_Addres_Ptr*/
+		DRV_Lora_ReadRegister(LORA_Instance, REG_FIFO_RX_CURRENT_ADDR, &l_rx_address);
+
+		/* Set ptr of Fifo_Address Ptr */
+		DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_ADDR_PTR, l_rx_address);
+
+		/* Read payload of current data */
+		DRV_Lora_ReadRegister(LORA_Instance, REG_RX_NB_BYTES, &l_length);
+
+		/* Read data from fifo  */
+		DRV_Lora_ReadFifo(LORA_Instance, PtrDestinationData, l_length);
+
+		/* Reset fifo rx base address */
+		DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_RX_BASE_ADDR, 0x00); // RegFifoRxBaseAddr
+
+		/* Clear IRQ previous state */
+		DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
 		/* @brief : advoid compiler warning */
 		(void)l_irqStatus;
 	}
