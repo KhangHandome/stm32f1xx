@@ -178,10 +178,10 @@ typedef struct
 
 /* Prototype function */
 LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance);
-LORA_ReturnTypedef DRV_LoraDeinit(LORA_HandleTypedef* LORA_Instance);
+void               DRV_LoraDeinit(LORA_HandleTypedef* LORA_Instance);
 LORA_ReturnTypedef DRV_LoraSwitchMode(LORA_HandleTypedef* LORA_Instance, Lora_State_t LoraState);
-LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* PtrSourceData, uint16_t length);
-LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* PtrDestinationData, uint16_t length);
+LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* PtrSourceData, uint16_t length, uint16_t timeOut);
+LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* PtrDestinationData, uint16_t length, uint16_t timeOut);
 LORA_ReturnTypedef DRV_LoraConfigFrequency(LORA_HandleTypedef* LORA_Instance);
 LORA_ReturnTypedef DRV_LoraConfigInterrupt(LORA_HandleTypedef* LORA_Instance);
 LORA_ReturnTypedef DRV_Lora_IRQHandler(LORA_HandleTypedef* LORA_Instance); 

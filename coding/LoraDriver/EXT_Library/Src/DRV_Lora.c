@@ -12,9 +12,8 @@ static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, 
  */
 LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
 {
-	LORA_ReturnTypedef retVal = STD_E_OK;
 	uint8_t Config = 0 ;
-
+	LORA_ReturnTypedef retVal = STD_E_OK;
     /* Reset LORA */
     HAL_GPIO_WritePin(LORA_Instance->ResetPort,LORA_Instance->ResetPin,GPIO_PIN_RESET);
     HAL_Delay(2);
@@ -118,23 +117,21 @@ LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
     {
     	retVal = STD_E_NOT_OK;
     }
-	return retVal;
+    return retVal;
 }
-LORA_ReturnTypedef DRV_LoraDeinit(LORA_HandleTypedef* LORA_Instance)
+void DRV_LoraDeinit(LORA_HandleTypedef* LORA_Instance)
 {
-	LORA_ReturnTypedef retVal = 0 ;
     /* Reset LORA */
     HAL_GPIO_WritePin(LORA_Instance->ResetPort,LORA_Instance->ResetPin,GPIO_PIN_RESET);
     HAL_Delay(2);
     HAL_GPIO_WritePin(LORA_Instance->ResetPort,LORA_Instance->ResetPin,GPIO_PIN_SET);
     HAL_Delay(20);
-    return retVal;
 }
 
 LORA_ReturnTypedef DRV_LoraSwitchMode(LORA_HandleTypedef* LORA_Instance, Lora_State_t LoraState)
 {
     uint8_t l_currentState = 0;
-
+    LORA_ReturnTypedef retVal = STD_E_OK;
     /* Read current operating mode */
     DRV_Lora_ReadRegister(LORA_Instance, REG_OP_MODE, &l_currentState);
 
@@ -149,15 +146,21 @@ LORA_ReturnTypedef DRV_LoraSwitchMode(LORA_HandleTypedef* LORA_Instance, Lora_St
 
         /* Set the new requested operating mode (keeping LoRa mode bit active) */
         DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, 0x80 | LoraState);
+
+        DRV_Lora_ReadRegister(LORA_Instance, REG_OP_MODE, &l_currentState);
+        if ((l_currentState & 0x07) != LoraState )
+        {
+        	retVal = STD_E_NOT_OK;
+        }
     }
 
-    return STD_E_OK;
+    return retVal;
 }
-LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* PtrSourceData, uint16_t length)
+LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* PtrSourceData, uint16_t length, uint16_t timeOut)
 {
-	LORA_ReturnTypedef retVal = 0 ;
+	LORA_ReturnTypedef retVal = STD_E_OK ;
 	uint8_t l_irqStatus = 0 ;
-	uint16_t l_timeout  = 20000 ;
+	uint16_t l_timeout  = timeOut ;
 	/* Switch mode of LoRa to standby  */
 	DRV_LoraSwitchMode(LORA_Instance, LORA_STANDBY_STATE);
 
@@ -180,8 +183,12 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
 		while( (l_irqStatus & (1 << 3)) == 0 && l_timeout -- )
 		{
 			DRV_Lora_ReadRegister(LORA_Instance, REG_IRQ_FLAGS, &l_irqStatus);
+			HAL_Delay(1);
 		}
-
+		if ( l_timeout == 0 )
+		{
+			retVal = STD_E_NOT_OK;
+		}
 		/* Clear IRQ previous state */
 		DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
 	}
@@ -192,13 +199,13 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
 	}
 	return retVal;
 }
-LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* PtrDestinationData, uint16_t length)
+LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* PtrDestinationData, uint16_t length, uint16_t timeOut)
 {
-	LORA_ReturnTypedef retVal = 0 ;
+	LORA_ReturnTypedef retVal = STD_E_OK ;
 	uint8_t l_irqStatus = 0 ;
 	uint8_t l_rx_address = 0 ;
 	uint8_t l_length = 0 ;
-	uint16_t l_timeout = 20000 ;
+	uint16_t l_timeout = timeOut ;
 	/* Polling bit TX Transmit done */
 	if(LORA_Instance->OperationMode == LORA_MODE_POLLING)
 	{
@@ -208,25 +215,32 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
 		while( (l_irqStatus & (1 << 6)) == 0 && l_timeout --)
 		{
 			DRV_Lora_ReadRegister(LORA_Instance, REG_IRQ_FLAGS, &l_irqStatus);
+			HAL_Delay(1);
 		}
-		/* Read address of Rx_Base_Addres_Ptr*/
-		DRV_Lora_ReadRegister(LORA_Instance, REG_FIFO_RX_CURRENT_ADDR, &l_rx_address);
+		if (l_timeout == 0 )
+		{
+			retVal = STD_E_NOT_OK;
+		}
+		else
+		{
+			/* Read address of Rx_Base_Addres_Ptr*/
+			DRV_Lora_ReadRegister(LORA_Instance, REG_FIFO_RX_CURRENT_ADDR, &l_rx_address);
 
-		/* Set ptr of Fifo_Address Ptr */
-		DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_ADDR_PTR, l_rx_address);
+			/* Set ptr of Fifo_Address Ptr */
+			DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_ADDR_PTR, l_rx_address);
 
-		/* Read payload of current data */
-		DRV_Lora_ReadRegister(LORA_Instance, REG_RX_NB_BYTES, &l_length);
+			/* Read payload of current data */
+			DRV_Lora_ReadRegister(LORA_Instance, REG_RX_NB_BYTES, &l_length);
 
-		/* Read data from fifo  */
-		DRV_Lora_ReadFifo(LORA_Instance, PtrDestinationData, l_length);
+			/* Read data from fifo  */
+			DRV_Lora_ReadFifo(LORA_Instance, PtrDestinationData, l_length);
 
-		/* Reset fifo rx base address */
-		DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_RX_BASE_ADDR, 0x00); // RegFifoRxBaseAddr
+			/* Reset fifo rx base address */
+			DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_RX_BASE_ADDR, 0x00); // RegFifoRxBaseAddr
 
-		/* Clear IRQ previous state */
-		DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
-
+			/* Clear IRQ previous state */
+			DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
+		}
 	}
 	else
 	{
