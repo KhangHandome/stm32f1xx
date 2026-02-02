@@ -138,7 +138,7 @@ int main(void)
 	  if(data_rev[0] == 'T')
 	  {
 		  HAL_Delay(10);
-		  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50);
+		  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50,10);
 		  DRV_LoraSwitchMode(&Lora_Instance_0, LORA_RECEIVE_CONTINUOUS_STATE);
 	  	  data_rev[0] = '\0';
 	  }
@@ -186,7 +186,7 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void EXTI0_IRQHandler()
 {
-	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50);
+	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50, 10);
     __HAL_GPIO_EXTI_CLEAR_IT(LORA_DIO0_PIN_Pin);
 }
 /* USER CODE END 4 */

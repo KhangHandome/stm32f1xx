@@ -1,0 +1,8 @@
+../Core/Src/lora.c:11:6:DRV_Lora_Init	1
+../Core/Src/lora.c:73:6:DRV_Lora_Deinit	1
+../Core/Src/lora.c:77:6:DRV_Lora_Reset	1
+../Core/Src/lora.c:87:6:DRV_Lora_Transmit	2
+../Core/Src/lora.c:117:17:DRV_Lora_Receive	2
+../Core/Src/lora.c:162:9:DRV_Lora_GetVersionInfor	1
+../Core/Src/lora.c:168:13:DRV_Lora_ReadRegister	1
+../Core/Src/lora.c:181:13:DRV_Lora_WriteRegister	1
