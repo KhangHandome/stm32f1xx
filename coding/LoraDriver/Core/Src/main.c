@@ -64,6 +64,7 @@ LORA_HandleTypedef Lora_Instance_0 =
 		.ResetPort       = LORA_RST_PIN_GPIO_Port,
 		.Dio_0_Pin       = LORA_DIO0_PIN_Pin,
 		.Dio_0_Port      = LORA_DIO0_PIN_GPIO_Port,
+//		.OperationMode   = LORA_MODE_INTERRUPT,
 		.OperationMode   = LORA_MODE_INTERRUPT,
 		.Bandwidth       = LORA_BW_125_KHZ,
 		.Frequency       = 433000000,
@@ -78,14 +79,21 @@ LORA_HandleTypedef Lora_Instance_0 =
 char *data_test = "Testing transmit and receive for module LoRa";
 uint8_t data_rev[50] = {0};
 
+typedef enum {
+	IDLE,
+	TRANSMIT,
+	RECEIVE,
+	CONFIRM
+} StateMachine_t ;
 /* USER CODE END 0 */
-
+StateMachine_t StateMachine = IDLE ;
 /**
   * @brief  The application entry point.
   * @retval int
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -112,8 +120,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
   DRV_LoraInit(&Lora_Instance_0);
   DRV_LoraSwitchMode(&Lora_Instance_0, LORA_RECEIVE_CONTINUOUS_STATE);
+  StateMachine = RECEIVE;
   NVIC_EnableIRQ(EXTI0_IRQn);
-
+  LORA_ReturnTypedef status  ;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -124,25 +133,39 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 //	  MASTER
-//	  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) data_test, 50);
-//	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50);
-//	  HAL_Delay(500);
+//	  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) data_test, 50, 100);
+//	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50, 1000);
+//	  if(data_rev[0] == 'T' )
+//	  {
+//		  HAL_GPIO_TogglePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin);
+//		  data_rev[0] = 0 ;
+//	  }
+//	  HAL_Delay(100);
 //    Slave
-//	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50);
+//	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50, 100);
 //	  if(data_rev[0] == 'T')
 //	  {
-//		  HAL_Delay(1);
-//		  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50);
+//		  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50, 100);
+//		  HAL_GPIO_TogglePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin);
 //		  data_rev[0] = '\0';
 //	  }
 	  if(data_rev[0] == 'T')
 	  {
-		  HAL_Delay(10);
-		  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50,10);
+		  HAL_GPIO_TogglePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin);
+		  status = DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50,10);
 		  DRV_LoraSwitchMode(&Lora_Instance_0, LORA_RECEIVE_CONTINUOUS_STATE);
 	  	  data_rev[0] = '\0';
 	  }
-
+//	  if ( StateMachine == CONFIRM )
+//	  {
+//		  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50,10);
+//		  DRV_LoraSwitchMode(&Lora_Instance_0, LORA_RECEIVE_CONTINUOUS_STATE);
+//	  }
+//	  if(data_rev[0] == 'C' && StateMachine == CONFIRM)
+//	  {
+//		  StateMachine = RECEIVE;
+//	  }
+//
   }
   /* USER CODE END 3 */
 }
@@ -186,8 +209,8 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void EXTI0_IRQHandler()
 {
-	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50, 10);
-    __HAL_GPIO_EXTI_CLEAR_IT(LORA_DIO0_PIN_Pin);
+	DRV_LoraReceive(&Lora_Instance_0, data_rev, 50, 10);
+	__HAL_GPIO_EXTI_CLEAR_IT(LORA_DIO0_PIN_Pin);
 }
 /* USER CODE END 4 */
 

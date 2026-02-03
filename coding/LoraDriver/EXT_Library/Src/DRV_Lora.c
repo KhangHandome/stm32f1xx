@@ -101,7 +101,7 @@ LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
     {
         DRV_Lora_WriteRegister(LORA_Instance,REG_IRQ_FLAGS_MASK, 0x00 );
     }
-    
+
 
     /* Clear IRQ */
 	DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
@@ -143,10 +143,10 @@ LORA_ReturnTypedef DRV_LoraSwitchMode(LORA_HandleTypedef* LORA_Instance, Lora_St
          * 0x80 is used to maintain Bit 7 (LongRangeMode = 1) for LoRa mode.
          */
         DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, 0x80 | 0x01);
-
+        HAL_Delay(5);
         /* Set the new requested operating mode (keeping LoRa mode bit active) */
         DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, 0x80 | LoraState);
-
+        HAL_Delay(5);
         DRV_Lora_ReadRegister(LORA_Instance, REG_OP_MODE, &l_currentState);
         if ((l_currentState & 0x07) != LoraState )
         {
@@ -180,7 +180,7 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
 	/* Polling bit TX Transmit done */
 	if(LORA_Instance->OperationMode == LORA_MODE_POLLING)
 	{
-		while( (l_irqStatus & (1 << 3)) == 0 && l_timeout -- )
+		while( (l_irqStatus & (1 << 3)) == 0 && l_timeout -- > 1 )
 		{
 			DRV_Lora_ReadRegister(LORA_Instance, REG_IRQ_FLAGS, &l_irqStatus);
 			HAL_Delay(1);
@@ -194,6 +194,18 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
 	}
 	else
 	{
+		while( (l_irqStatus & (1 << 3)) == 0 && l_timeout -- > 1 )
+		{
+			DRV_Lora_ReadRegister(LORA_Instance, REG_IRQ_FLAGS, &l_irqStatus);
+			HAL_Delay(1);
+		}
+		if ( l_timeout == 0 )
+		{
+			retVal = STD_E_NOT_OK;
+		}
+		/* Clear IRQ previous state */
+		DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
+
 		/* @brief : advoid compiler warning */
 		(void)l_irqStatus;
 	}
@@ -212,7 +224,7 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
 		/* Switch mode of LoRa to RX_Continuos  */
 		DRV_LoraSwitchMode(LORA_Instance, LORA_RECEIVE_CONTINUOUS_STATE);
 
-		while( (l_irqStatus & (1 << 6)) == 0 && l_timeout --)
+		while( (l_irqStatus & (1 << 6)) == 0 && l_timeout -- > 1)
 		{
 			DRV_Lora_ReadRegister(LORA_Instance, REG_IRQ_FLAGS, &l_irqStatus);
 			HAL_Delay(1);
@@ -286,22 +298,22 @@ LORA_ReturnTypedef DRV_Lora_IRQHandler(LORA_HandleTypedef* LORA_Instance)
 	return retVal;
 }
 uint8_t DRV_Lora_GetVersion(LORA_HandleTypedef* LORA_Instance)
-{   
-    uint8_t retVal = 0 ; 
+{
+    uint8_t retVal = 0 ;
 
     /* Read register version in Lora to get version */
     DRV_Lora_ReadRegister(LORA_Instance, REG_VERSION, &retVal);
 
     /* Return version */
-    return retVal; 
+    return retVal;
 }
 /*
  * Definition static function
  */
 static LORA_ReturnTypedef DRV_Lora_ReadRegister(LORA_HandleTypedef *LORA_Instance, const uint8_t reg, uint8_t *data)
 {
-    HAL_StatusTypeDef TransmitStatus = HAL_OK; 
-    LORA_ReturnTypedef  retVal = STD_E_OK ; 
+    HAL_StatusTypeDef TransmitStatus = HAL_OK;
+    LORA_ReturnTypedef  retVal = STD_E_OK ;
     uint8_t l_register = LORA_READ_REG(reg);
     /* Pulll the Chip Select pin low */
     HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_RESET);
@@ -331,8 +343,8 @@ static LORA_ReturnTypedef DRV_Lora_ReadRegister(LORA_HandleTypedef *LORA_Instanc
 }
 static LORA_ReturnTypedef DRV_Lora_WriteRegister(LORA_HandleTypedef *LORA_Instance,const uint8_t reg, uint8_t data)
 {
-    HAL_StatusTypeDef TransmitStatus = HAL_OK; 
-    LORA_ReturnTypedef  retVal = STD_E_OK ; 
+    HAL_StatusTypeDef TransmitStatus = HAL_OK;
+    LORA_ReturnTypedef  retVal = STD_E_OK ;
     uint8_t l_register = LORA_WRITE_REG(reg);
     /* Pulll the Chip Select pin low */
     HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_RESET);
@@ -362,10 +374,10 @@ static LORA_ReturnTypedef DRV_Lora_WriteRegister(LORA_HandleTypedef *LORA_Instan
 }
 static LORA_ReturnTypedef DRV_Lora_ReadFifo(LORA_HandleTypedef *LORA_Instance, uint8_t* data, uint16_t length)
 {
-    HAL_StatusTypeDef TransmitStatus = HAL_OK; 
-    LORA_ReturnTypedef  retVal = STD_E_OK ; 
+    HAL_StatusTypeDef TransmitStatus = HAL_OK;
+    LORA_ReturnTypedef  retVal = STD_E_OK ;
     uint8_t l_register = LORA_READ_REG(REG_FIFO);
-    uint16_t l_counter = 0 ; 
+    uint16_t l_counter = 0 ;
     /* Pulll the Chip Select pin low */
     HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_RESET);
 
@@ -398,10 +410,10 @@ static LORA_ReturnTypedef DRV_Lora_ReadFifo(LORA_HandleTypedef *LORA_Instance, u
 }
 static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, uint8_t* data, uint16_t length)
 {
-    HAL_StatusTypeDef TransmitStatus = HAL_OK; 
-    LORA_ReturnTypedef  retVal = STD_E_OK ; 
+    HAL_StatusTypeDef TransmitStatus = HAL_OK;
+    LORA_ReturnTypedef  retVal = STD_E_OK ;
     uint8_t l_register = LORA_WRITE_REG(REG_FIFO);
-    uint16_t l_counter = 0 ; 
+    uint16_t l_counter = 0 ;
     /* Pulll the Chip Select pin low */
     HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_RESET);
 
@@ -432,4 +444,3 @@ static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, 
     /* Return result  */
     return retVal;
 }
-

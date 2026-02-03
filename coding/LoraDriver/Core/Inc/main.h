@@ -57,6 +57,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define LED_STATUS_Pin GPIO_PIN_13
+#define LED_STATUS_GPIO_Port GPIOC
 #define LORA_CS_PIN_Pin GPIO_PIN_4
 #define LORA_CS_PIN_GPIO_Port GPIOA
 #define LORA_DIO0_PIN_Pin GPIO_PIN_0
