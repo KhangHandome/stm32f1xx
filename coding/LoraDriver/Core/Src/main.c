@@ -122,7 +122,6 @@ int main(void)
   DRV_LoraSwitchMode(&Lora_Instance_0, LORA_RECEIVE_CONTINUOUS_STATE);
 //  StateMachine = RECEIVE;
 //  NVIC_EnableIRQ(EXTI0_IRQn);
-  LORA_ReturnTypedef status  ;
   /* USER CODE END 2 */
 
   /* Infinite loop */

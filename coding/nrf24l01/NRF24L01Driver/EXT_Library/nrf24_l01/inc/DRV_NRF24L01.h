@@ -3,6 +3,7 @@
 
 #include "gpio.h"
 #include "spi.h"
+
 /* --- NRF24L01 COMMANDS --- 
  * Các lệnh này được gửi trực tiếp qua SPI để điều khiển chip
  */
@@ -65,4 +66,14 @@
 /*
  * Prototype function 
 */
+void DRV_Nrf24l01Init();
+void DRV_Nrf24l01Deinit();
+void DRV_Nrf24l01Receive();
+void DRV_Nrf24l01Transmit();
+void DRV_Nrf24l01SetChannel();
+void DRV_Nrf24l01SetDataRate();
+void DRV_Nrf24l01SetPALevel();
+void DRV_Nrf24l01OpenWritingPipe();
+void DRV_Nrf24l01OpenReadingPiple();
+void DRV_Nrf24l01SwitchMode();
 #endif /* _DRV_NRF24L01_H_ */

@@ -27,25 +27,25 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000029  00000000  00000000  00004040  2**0
                   CONTENTS, READONLY
- 12 .debug_info   00005c76  00000000  00000000  00004069  2**0
+ 12 .debug_info   00005cf3  00000000  00000000  00004069  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 000016b7  00000000  00000000  00009cdf  2**0
+ 13 .debug_abbrev 0000169f  00000000  00000000  00009d5c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 00000670  00000000  00000000  0000b398  2**3
+ 14 .debug_aranges 00000670  00000000  00000000  0000b400  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_rnglists 000004bb  00000000  00000000  0000ba08  2**0
+ 15 .debug_rnglists 000004bb  00000000  00000000  0000ba70  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  000165db  00000000  00000000  0000bec3  2**0
+ 16 .debug_macro  00016615  00000000  00000000  0000bf2b  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00007f82  00000000  00000000  0002249e  2**0
+ 17 .debug_line   00007f93  00000000  00000000  00022540  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0007e62a  00000000  00000000  0002a420  2**0
+ 18 .debug_str    0007e62a  00000000  00000000  0002a4d3  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  000a8a4a  2**0
+ 19 .comment      00000043  00000000  00000000  000a8afd  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00001870  00000000  00000000  000a8a90  2**2
+ 20 .debug_frame  00001870  00000000  00000000  000a8b40  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 0000006b  00000000  00000000  000aa300  2**0
+ 21 .debug_line_str 0000006b  00000000  00000000  000aa3b0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -5818,9 +5818,9 @@ static HAL_StatusTypeDef SPI_EndRxTxTransaction(SPI_HandleTypeDef *hspi, uint32_
  8002268:	bd80      	pop	{r7, pc}
 
 0800226a <DRV_LoraInit>:
-static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, uint8_t* data, uint16_t length);
-/*
- * Defintion function
+ *          7. Verify chip version
+ * @in LORA_Instance Pointer to LoRa handle structure with configuration
+ * @output STD_E_OK if initialization successful, STD_E_NOT_OK otherwise
  */
 LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
 {
@@ -5828,14 +5828,18 @@ LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
  800226c:	b084      	sub	sp, #16
  800226e:	af00      	add	r7, sp, #0
  8002270:	6078      	str	r0, [r7, #4]
-	uint8_t Config = 0 ;
+	uint8_t Config = 0;
  8002272:	2300      	movs	r3, #0
  8002274:	73fb      	strb	r3, [r7, #15]
 	LORA_ReturnTypedef retVal = STD_E_OK;
  8002276:	2300      	movs	r3, #0
  8002278:	73bb      	strb	r3, [r7, #14]
-    /* Reset LORA */
-    HAL_GPIO_WritePin(LORA_Instance->ResetPort,LORA_Instance->ResetPin,GPIO_PIN_RESET);
+	
+	/* ========================================================================
+	 * HARDWARE RESET SEQUENCE
+	 * ======================================================================== */
+	/* Reset LORA module using hardware reset pin */
+	HAL_GPIO_WritePin(LORA_Instance->ResetPort, LORA_Instance->ResetPin, GPIO_PIN_RESET);
  800227a:	687b      	ldr	r3, [r7, #4]
  800227c:	6918      	ldr	r0, [r3, #16]
  800227e:	687b      	ldr	r3, [r7, #4]
@@ -5843,10 +5847,10 @@ LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
  8002282:	2200      	movs	r2, #0
  8002284:	4619      	mov	r1, r3
  8002286:	f7fe fe4b 	bl	8000f20 <HAL_GPIO_WritePin>
-    HAL_Delay(2);
+	HAL_Delay(2);  /* Hold reset for 2ms */
  800228a:	2002      	movs	r0, #2
  800228c:	f7fe fbbc 	bl	8000a08 <HAL_Delay>
-    HAL_GPIO_WritePin(LORA_Instance->ResetPort,LORA_Instance->ResetPin,GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LORA_Instance->ResetPort, LORA_Instance->ResetPin, GPIO_PIN_SET);
  8002290:	687b      	ldr	r3, [r7, #4]
  8002292:	6918      	ldr	r0, [r3, #16]
  8002294:	687b      	ldr	r3, [r7, #4]
@@ -5854,47 +5858,58 @@ LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
  8002298:	2201      	movs	r2, #1
  800229a:	4619      	mov	r1, r3
  800229c:	f7fe fe40 	bl	8000f20 <HAL_GPIO_WritePin>
-    HAL_Delay(20);
+	HAL_Delay(20); /* Wait for module to stabilize */
  80022a0:	2014      	movs	r0, #20
  80022a2:	f7fe fbb1 	bl	8000a08 <HAL_Delay>
 
-    /* Move to sleep state */
-    DRV_Lora_WriteRegister(LORA_Instance,REG_OP_MODE,LORA_SLEEP_STATE);
+	/* ========================================================================
+	 * MODE CONFIGURATION
+	 * ======================================================================== */
+	/* Move to sleep state (required before changing between LoRa/FSK modes) */
+	DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, LORA_SLEEP_STATE);
  80022a6:	2200      	movs	r2, #0
  80022a8:	2101      	movs	r1, #1
  80022aa:	6878      	ldr	r0, [r7, #4]
  80022ac:	f000 fa6b 	bl	8002786 <DRV_Lora_WriteRegister>
 
-    /* Move to LoRa mode */
-    DRV_Lora_WriteRegister(LORA_Instance,REG_OP_MODE,LORA_MODE_SLEEP | ( 1 << 7 ));
+	/* Switch to LoRa mode (bit 7 = 1 for LoRa, 0 for FSK/OOK) */
+	DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, LORA_MODE_SLEEP | (1 << 7));
  80022b0:	2280      	movs	r2, #128	@ 0x80
  80022b2:	2101      	movs	r1, #1
  80022b4:	6878      	ldr	r0, [r7, #4]
  80022b6:	f000 fa66 	bl	8002786 <DRV_Lora_WriteRegister>
-
-    /* Configure LoRa parameters */
-    // RegModemConfig1: Bandwidth | CodingRate | ImplicitHeaderOff
-	DRV_Lora_WriteRegister(LORA_Instance, REG_MODEM_CONFIG_1, (uint8_t) (LORA_Instance->Bandwidth << 4) | (LORA_Instance->CodingRate << 1));
+	 * - Bits 7-4: Bandwidth
+	 * - Bits 3-1: Coding Rate
+	 * - Bit 0: Implicit Header Mode (0 = explicit header ON)
+	 */
+	DRV_Lora_WriteRegister(LORA_Instance, REG_MODEM_CONFIG_1, 
+	                       (uint8_t)(LORA_Instance->Bandwidth << 4) | 
  80022ba:	687b      	ldr	r3, [r7, #4]
  80022bc:	f893 3025 	ldrb.w	r3, [r3, #37]	@ 0x25
  80022c0:	b25b      	sxtb	r3, r3
  80022c2:	011b      	lsls	r3, r3, #4
  80022c4:	b25a      	sxtb	r2, r3
+	                       (LORA_Instance->CodingRate << 1));
  80022c6:	687b      	ldr	r3, [r7, #4]
  80022c8:	f893 3026 	ldrb.w	r3, [r3, #38]	@ 0x26
+	                       (uint8_t)(LORA_Instance->Bandwidth << 4) | 
  80022cc:	b25b      	sxtb	r3, r3
  80022ce:	005b      	lsls	r3, r3, #1
  80022d0:	b25b      	sxtb	r3, r3
  80022d2:	4313      	orrs	r3, r2
  80022d4:	b25b      	sxtb	r3, r3
+	DRV_Lora_WriteRegister(LORA_Instance, REG_MODEM_CONFIG_1, 
  80022d6:	b2db      	uxtb	r3, r3
  80022d8:	461a      	mov	r2, r3
  80022da:	211d      	movs	r1, #29
  80022dc:	6878      	ldr	r0, [r7, #4]
  80022de:	f000 fa52 	bl	8002786 <DRV_Lora_WriteRegister>
-
-	// RegModemConfig2: SpreadingFactor | CrcOn
-	DRV_Lora_WriteRegister(LORA_Instance, REG_MODEM_CONFIG_2, (LORA_Instance->SpreadingFactor << 4) | 0x04);
+	 * RegModemConfig2 (0x1E):
+	 * - Bits 7-4: Spreading Factor
+	 * - Bit 2: CRC On (0x04 enables CRC for packet integrity)
+	 */
+	DRV_Lora_WriteRegister(LORA_Instance, REG_MODEM_CONFIG_2, 
+	                       (LORA_Instance->SpreadingFactor << 4) | 0x04);
  80022e2:	687b      	ldr	r3, [r7, #4]
  80022e4:	f893 3024 	ldrb.w	r3, [r3, #36]	@ 0x24
  80022e8:	b25b      	sxtb	r3, r3
@@ -5902,33 +5917,44 @@ LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
  80022ec:	b25b      	sxtb	r3, r3
  80022ee:	f043 0304 	orr.w	r3, r3, #4
  80022f2:	b25b      	sxtb	r3, r3
+	DRV_Lora_WriteRegister(LORA_Instance, REG_MODEM_CONFIG_2, 
  80022f4:	b2db      	uxtb	r3, r3
  80022f6:	461a      	mov	r2, r3
  80022f8:	211e      	movs	r1, #30
  80022fa:	6878      	ldr	r0, [r7, #4]
  80022fc:	f000 fa43 	bl	8002786 <DRV_Lora_WriteRegister>
-	if ((LORA_Instance->Bandwidth < LORA_BW_125_KHZ) || (LORA_Instance->SpreadingFactor > LORA_SF_10))
+	 * Low Data Rate Optimization should be enabled when:
+	 * - Bandwidth < 125 kHz, OR
+	 * - Spreading Factor > 10
+	 * This improves sensitivity at the cost of slightly increased air time
+	 */
+	if ((LORA_Instance->Bandwidth < LORA_BW_125_KHZ) || 
  8002300:	687b      	ldr	r3, [r7, #4]
  8002302:	f893 3025 	ldrb.w	r3, [r3, #37]	@ 0x25
  8002306:	2b06      	cmp	r3, #6
  8002308:	d904      	bls.n	8002314 <DRV_LoraInit+0xaa>
+	    (LORA_Instance->SpreadingFactor > LORA_SF_10))
  800230a:	687b      	ldr	r3, [r7, #4]
  800230c:	f893 3024 	ldrb.w	r3, [r3, #36]	@ 0x24
+	if ((LORA_Instance->Bandwidth < LORA_BW_125_KHZ) || 
  8002310:	2b0a      	cmp	r3, #10
  8002312:	d902      	bls.n	800231a <DRV_LoraInit+0xb0>
 	{
-		Config = ( 1 << 3 ) | 0x04 ;
+		/* Enable both AGC (bit 3) and LowDataRateOptimize (bit 2) */
+		Config = (1 << 3) | 0x04;
  8002314:	230c      	movs	r3, #12
  8002316:	73fb      	strb	r3, [r7, #15]
  8002318:	e001      	b.n	800231e <DRV_LoraInit+0xb4>
 	}
 	else
 	{
-		Config = ( 1 << 3);
+		/* Enable only AGC (Automatic Gain Control) */
+		Config = (1 << 3);
  800231a:	2308      	movs	r3, #8
  800231c:	73fb      	strb	r3, [r7, #15]
 	}
-	// RegModemConfig3: Config AGC and LowDataRateOptimize
+	
+	/* Write modem config 3 register */
 	DRV_Lora_WriteRegister(LORA_Instance, REG_MODEM_CONFIG_3, Config);
  800231e:	7bfb      	ldrb	r3, [r7, #15]
  8002320:	461a      	mov	r2, r3
@@ -5936,43 +5962,55 @@ LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
  8002324:	6878      	ldr	r0, [r7, #4]
  8002326:	f000 fa2e 	bl	8002786 <DRV_Lora_WriteRegister>
 
-    /* Config frequency */
-    DRV_LoraConfigFrequency(LORA_Instance);
+	/* ========================================================================
+	 * FREQUENCY CONFIGURATION
+	 * ======================================================================== */
+	/* Set RF carrier frequency based on LORA_Instance->Frequency */
+	DRV_LoraConfigFrequency(LORA_Instance);
  800232a:	6878      	ldr	r0, [r7, #4]
  800232c:	f000 f9a2 	bl	8002674 <DRV_LoraConfigFrequency>
-
-    /* Config sync word */
-    DRV_Lora_WriteRegister(LORA_Instance, 0x39, 0x12);
+	/**
+	 * Set LoRa sync word to 0x12 (default for LoRaWAN public networks)
+	 * Note: Private networks typically use 0x34
+	 * This ensures only devices with matching sync words can communicate
+	 */
+	DRV_Lora_WriteRegister(LORA_Instance, 0x39, 0x12);
  8002330:	2212      	movs	r2, #18
  8002332:	2139      	movs	r1, #57	@ 0x39
  8002334:	6878      	ldr	r0, [r7, #4]
  8002336:	f000 fa26 	bl	8002786 <DRV_Lora_WriteRegister>
 
-    /* Reset address pointer */
-	DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_ADDR_PTR, 0x00); // RegFifoAddrPtr
+	/* ========================================================================
+	 * FIFO CONFIGURATION
+	 * ======================================================================== */
+	/* Reset FIFO address pointers to start of buffer */
+	DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_ADDR_PTR, 0x00);      /* Current FIFO pointer */
  800233a:	2200      	movs	r2, #0
  800233c:	210d      	movs	r1, #13
  800233e:	6878      	ldr	r0, [r7, #4]
  8002340:	f000 fa21 	bl	8002786 <DRV_Lora_WriteRegister>
-	DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_TX_BASE_ADDR, 0x00); // RegFifoTxBaseAddr
+	DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_TX_BASE_ADDR, 0x00);  /* TX base address */
  8002344:	2200      	movs	r2, #0
  8002346:	210e      	movs	r1, #14
  8002348:	6878      	ldr	r0, [r7, #4]
  800234a:	f000 fa1c 	bl	8002786 <DRV_Lora_WriteRegister>
-	DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_RX_BASE_ADDR, 0x00); // RegFifoRxBaseAddr
+	DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_RX_BASE_ADDR, 0x00);  /* RX base address */
  800234e:	2200      	movs	r2, #0
  8002350:	210f      	movs	r1, #15
  8002352:	6878      	ldr	r0, [r7, #4]
  8002354:	f000 fa17 	bl	8002786 <DRV_Lora_WriteRegister>
-
-    /* Enable PA Boost, Max Power */
-	/* --- Configure Power (PA_BOOST Mode) --- */
+	 * ======================================================================== */
+	/**
+	 * Configure PA (Power Amplifier) using PA_BOOST mode
+	 * PA_BOOST uses pin PA_BOOST instead of RFO pins for higher output power
+	 */
 	uint8_t pa_config_val = 0;
  8002358:	2300      	movs	r3, #0
  800235a:	737b      	strb	r3, [r7, #13]
-	uint8_t pa_dac_val = 0x84; // Giá trị mặc định cho RegPaDac (0x4D)
+	uint8_t pa_dac_val = 0x84; /* Default value for RegPaDac (0x4D) */
  800235c:	2384      	movs	r3, #132	@ 0x84
  800235e:	733b      	strb	r3, [r7, #12]
+	
 	switch (LORA_Instance->Power)
  8002360:	687b      	ldr	r3, [r7, #4]
  8002362:	f893 3027 	ldrb.w	r3, [r3, #39]	@ 0x27
@@ -5985,46 +6023,47 @@ LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
  8002372:	2b01      	cmp	r3, #1
  8002374:	d003      	beq.n	800237e <DRV_LoraInit+0x114>
  8002376:	e008      	b.n	800238a <DRV_LoraInit+0x120>
-	{
-	    case LORA_POWER_LOW:
-	        // Thiết lập 2 dBm (Mức thấp nhất để test trong phòng)
-	        // Pout = 2 + OutputPower => OutputPower = 0
-	        pa_config_val = 0x80 | 0x00;
+			 * Low power mode: 2 dBm
+			 * Best for indoor testing and battery conservation
+			 * Formula: Pout = 2 + OutputPower
+			 * For 2 dBm: OutputPower = 0
+			 */
+			pa_config_val = 0x80 | 0x00;
  8002378:	2380      	movs	r3, #128	@ 0x80
  800237a:	737b      	strb	r3, [r7, #13]
-	        break;
+			break;
  800237c:	e008      	b.n	8002390 <DRV_LoraInit+0x126>
-
-	    case LORA_POWER_BALANCE:
-	        // Thiết lập 14 dBm (Mức trung bình, an toàn cho mọi nguồn điện)
-	        // Pout = 2 + OutputPower => OutputPower = 12 (0x0C)
-	        pa_config_val = 0x80 | 0x0C;
+			 * Balanced power mode: 14 dBm
+			 * Safe for all power sources, medium range
+			 * Formula: Pout = 2 + OutputPower
+			 * For 14 dBm: OutputPower = 12 (0x0C)
+			 */
+			pa_config_val = 0x80 | 0x0C;
  800237e:	238c      	movs	r3, #140	@ 0x8c
  8002380:	737b      	strb	r3, [r7, #13]
-	        break;
+			break;
  8002382:	e005      	b.n	8002390 <DRV_LoraInit+0x126>
-
-	    case LORA_POWER_MAX:
-	        // Thiết lập 17 dBm (Mức mạnh nhất thông thường)
-	        // Pout = 2 + OutputPower => OutputPower = 15 (0x0F)
-	        pa_config_val = 0x80 | 0x0F;
+			 * For 17 dBm: OutputPower = 15 (0x0F)
+			 * 
+			 * Note: 20 dBm is possible by setting pa_dac_val = 0x87,
+			 * but 17 dBm is the safest maximum for Ra-02 modules
+			 */
+			pa_config_val = 0x80 | 0x0F;
  8002384:	238f      	movs	r3, #143	@ 0x8f
  8002386:	737b      	strb	r3, [r7, #13]
-
-	        /* Ghi chú: Nếu muốn lên 20dBm, cần set pa_dac_val = 0x87 nhưng 17dBm là mức an toàn nhất cho module Ra-02 */
-	        break;
+			break;
  8002388:	e002      	b.n	8002390 <DRV_LoraInit+0x126>
 
-	    default:
-	        // Mặc định chọn Balance nếu người dùng quên set
-	        pa_config_val = 0x80 | 0x0C;
+		default:
+			/* Default to balanced mode if not specified */
+			pa_config_val = 0x80 | 0x0C;
  800238a:	238c      	movs	r3, #140	@ 0x8c
  800238c:	737b      	strb	r3, [r7, #13]
-	        break;
+			break;
  800238e:	bf00      	nop
 	}
 
-	// Ghi vào thanh ghi cấu hình Power
+	/* Write power configuration to PA config register */
 	DRV_Lora_WriteRegister(LORA_Instance, REG_PA_CONFIG, pa_config_val);
  8002390:	7b7b      	ldrb	r3, [r7, #13]
  8002392:	461a      	mov	r2, r3
@@ -6032,71 +6071,83 @@ LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
  8002396:	6878      	ldr	r0, [r7, #4]
  8002398:	f000 f9f5 	bl	8002786 <DRV_Lora_WriteRegister>
 
-	// Cấu hình thêm RegPaDac để đảm bảo độ ổn định công suất
+	/* Configure PA DAC for power stability */
 	DRV_Lora_WriteRegister(LORA_Instance, 0x4D, pa_dac_val);
  800239c:	7b3b      	ldrb	r3, [r7, #12]
  800239e:	461a      	mov	r2, r3
  80023a0:	214d      	movs	r1, #77	@ 0x4d
  80023a2:	6878      	ldr	r0, [r7, #4]
  80023a4:	f000 f9ef 	bl	8002786 <DRV_Lora_WriteRegister>
-
-    /* Setup for interrupt using pin DIO0 */
-    if (LORA_Instance->OperationMode == LORA_MODE_INTERRUPT)
+	/**
+	 * Setup interrupt mask based on operation mode
+	 * In interrupt mode, only unmask TxDone (bit 3) and RxDone (bit 6)
+	 * In polling mode, unmask all interrupts
+	 */
+	if (LORA_Instance->OperationMode == LORA_MODE_INTERRUPT)
  80023a8:	687b      	ldr	r3, [r7, #4]
  80023aa:	7f1b      	ldrb	r3, [r3, #28]
  80023ac:	2b01      	cmp	r3, #1
  80023ae:	d105      	bne.n	80023bc <DRV_LoraInit+0x152>
-    {
-        DRV_Lora_WriteRegister(LORA_Instance,REG_IRQ_FLAGS_MASK, 0xFF & (~(1 <<3 | 1 << 6)));
+	{
+		/* Mask all except TxDone and RxDone interrupts */
+		DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS_MASK, 
  80023b0:	22b7      	movs	r2, #183	@ 0xb7
  80023b2:	2111      	movs	r1, #17
  80023b4:	6878      	ldr	r0, [r7, #4]
  80023b6:	f000 f9e6 	bl	8002786 <DRV_Lora_WriteRegister>
  80023ba:	e004      	b.n	80023c6 <DRV_LoraInit+0x15c>
-    }
-    else
-    {
-        DRV_Lora_WriteRegister(LORA_Instance,REG_IRQ_FLAGS_MASK, 0x00 );
+		                       0xFF & (~(1 << 3 | 1 << 6)));
+	}
+	else
+	{
+		/* Unmask all interrupts for polling mode */
+		DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS_MASK, 0x00);
  80023bc:	2200      	movs	r2, #0
  80023be:	2111      	movs	r1, #17
  80023c0:	6878      	ldr	r0, [r7, #4]
  80023c2:	f000 f9e0 	bl	8002786 <DRV_Lora_WriteRegister>
-    }
 
-
-    /* Clear IRQ */
+	/* ========================================================================
+	 * CLEAR INTERRUPTS AND SET STANDBY MODE
+	 * ======================================================================== */
+	/* Clear all interrupt flags from initialization */
 	DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
  80023c6:	22ff      	movs	r2, #255	@ 0xff
  80023c8:	2112      	movs	r1, #18
  80023ca:	6878      	ldr	r0, [r7, #4]
  80023cc:	f000 f9db 	bl	8002786 <DRV_Lora_WriteRegister>
 
-    /* Set state to standby */
-    DRV_Lora_WriteRegister(LORA_Instance,REG_OP_MODE, LORA_STANDBY_STATE);
+	/* Set module to standby state (ready for TX/RX operations) */
+	DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, LORA_STANDBY_STATE);
  80023d0:	2201      	movs	r2, #1
  80023d2:	2101      	movs	r1, #1
  80023d4:	6878      	ldr	r0, [r7, #4]
  80023d6:	f000 f9d6 	bl	8002786 <DRV_Lora_WriteRegister>
-
-    if ( DRV_Lora_GetVersion(LORA_Instance) == 0x12)
+	 * ======================================================================== */
+	/**
+	 * Read chip version to verify SPI communication is working
+	 * SX1278 should return 0x12
+	 */
+	if (DRV_Lora_GetVersion(LORA_Instance) == 0x12)
  80023da:	6878      	ldr	r0, [r7, #4]
  80023dc:	f000 f97e 	bl	80026dc <DRV_Lora_GetVersion>
  80023e0:	4603      	mov	r3, r0
  80023e2:	2b12      	cmp	r3, #18
  80023e4:	d102      	bne.n	80023ec <DRV_LoraInit+0x182>
-    {
-    	retVal = STD_E_OK;
+	{
+		retVal = STD_E_OK;
  80023e6:	2300      	movs	r3, #0
  80023e8:	73bb      	strb	r3, [r7, #14]
  80023ea:	e001      	b.n	80023f0 <DRV_LoraInit+0x186>
-    }
-    else
-    {
-    	retVal = STD_E_NOT_OK;
+	}
+	else
+	{
+		retVal = STD_E_NOT_OK;
  80023ec:	2301      	movs	r3, #1
  80023ee:	73bb      	strb	r3, [r7, #14]
-    }
-    return retVal;
+	}
+	
+	return retVal;
  80023f0:	7bbb      	ldrb	r3, [r7, #14]
 }
  80023f2:	4618      	mov	r0, r3
@@ -6105,10 +6156,10 @@ LORA_ReturnTypedef DRV_LoraInit(LORA_HandleTypedef* LORA_Instance)
  80023f8:	bd80      	pop	{r7, pc}
 
 080023fa <DRV_LoraSwitchMode>:
-    HAL_GPIO_WritePin(LORA_Instance->ResetPort,LORA_Instance->ResetPin,GPIO_PIN_SET);
-    HAL_Delay(20);
-}
-
+ * @in LORA_Instance Pointer to LoRa handle structure
+ * @in LoraState Desired operating state (sleep, standby, TX, RX, etc.)
+ * @output STD_E_OK if mode switch successful, STD_E_NOT_OK otherwise
+ */
 LORA_ReturnTypedef DRV_LoraSwitchMode(LORA_HandleTypedef* LORA_Instance, Lora_State_t LoraState)
 {
  80023fa:	b580      	push	{r7, lr}
@@ -6117,42 +6168,47 @@ LORA_ReturnTypedef DRV_LoraSwitchMode(LORA_HandleTypedef* LORA_Instance, Lora_St
  8002400:	6078      	str	r0, [r7, #4]
  8002402:	460b      	mov	r3, r1
  8002404:	70fb      	strb	r3, [r7, #3]
-    uint8_t l_currentState = 0;
+	uint8_t l_currentState = 0;
  8002406:	2300      	movs	r3, #0
  8002408:	73bb      	strb	r3, [r7, #14]
-    LORA_ReturnTypedef retVal = STD_E_OK;
+	LORA_ReturnTypedef retVal = STD_E_OK;
  800240a:	2300      	movs	r3, #0
  800240c:	73fb      	strb	r3, [r7, #15]
-    /* Read current operating mode */
-    DRV_Lora_ReadRegister(LORA_Instance, REG_OP_MODE, &l_currentState);
+	
+	/* Read current operating mode from RegOpMode */
+	DRV_Lora_ReadRegister(LORA_Instance, REG_OP_MODE, &l_currentState);
  800240e:	f107 030e 	add.w	r3, r7, #14
  8002412:	461a      	mov	r2, r3
  8002414:	2101      	movs	r1, #1
  8002416:	6878      	ldr	r0, [r7, #4]
  8002418:	f000 f972 	bl	8002700 <DRV_Lora_ReadRegister>
 
-    /* Check if the requested mode is different from the current mode (masking last 3 bits) */
-    if ((l_currentState & 0x07) != LoraState)
+	/**
+	 * Check if the requested mode is different from current mode
+	 * Mask with 0x07 to check only the mode bits (bits 2-0)
+	 */
+	if ((l_currentState & 0x07) != LoraState)
  800241c:	7bbb      	ldrb	r3, [r7, #14]
  800241e:	f003 0207 	and.w	r2, r3, #7
  8002422:	78fb      	ldrb	r3, [r7, #3]
  8002424:	429a      	cmp	r2, r3
  8002426:	d022      	beq.n	800246e <DRV_LoraSwitchMode+0x74>
-    {
-        /* * Force the device into Standby mode before switching to the new mode.
-         * This ensures the PLL (Phase-Locked Loop) stabilizes.
-         * 0x80 is used to maintain Bit 7 (LongRangeMode = 1) for LoRa mode.
-         */
-        DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, 0x80 | 0x01);
+		 * Force device into Standby mode before switching to new mode
+		 * This ensures the PLL (Phase-Locked Loop) stabilizes properly
+		 * 0x80 maintains Bit 7 (LongRangeMode = 1) for LoRa mode
+		 * 0x01 sets Standby state
+		 */
+		DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, 0x80 | 0x01);
  8002428:	2281      	movs	r2, #129	@ 0x81
  800242a:	2101      	movs	r1, #1
  800242c:	6878      	ldr	r0, [r7, #4]
  800242e:	f000 f9aa 	bl	8002786 <DRV_Lora_WriteRegister>
-        HAL_Delay(5);
+		HAL_Delay(5); /* Wait for PLL to stabilize */
  8002432:	2005      	movs	r0, #5
  8002434:	f7fe fae8 	bl	8000a08 <HAL_Delay>
-        /* Set the new requested operating mode (keeping LoRa mode bit active) */
-        DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, 0x80 | LoraState);
+		
+		/* Set the new requested operating mode (keeping LoRa mode bit active) */
+		DRV_Lora_WriteRegister(LORA_Instance, REG_OP_MODE, 0x80 | LoraState);
  8002438:	78fb      	ldrb	r3, [r7, #3]
  800243a:	f063 037f 	orn	r3, r3, #127	@ 0x7f
  800243e:	b2db      	uxtb	r3, r3
@@ -6160,29 +6216,31 @@ LORA_ReturnTypedef DRV_LoraSwitchMode(LORA_HandleTypedef* LORA_Instance, Lora_St
  8002442:	2101      	movs	r1, #1
  8002444:	6878      	ldr	r0, [r7, #4]
  8002446:	f000 f99e 	bl	8002786 <DRV_Lora_WriteRegister>
-        HAL_Delay(5);
+		HAL_Delay(5); /* Wait for mode transition */
  800244a:	2005      	movs	r0, #5
  800244c:	f7fe fadc 	bl	8000a08 <HAL_Delay>
-        DRV_Lora_ReadRegister(LORA_Instance, REG_OP_MODE, &l_currentState);
+		
+		/* Verify the mode change was successful */
+		DRV_Lora_ReadRegister(LORA_Instance, REG_OP_MODE, &l_currentState);
  8002450:	f107 030e 	add.w	r3, r7, #14
  8002454:	461a      	mov	r2, r3
  8002456:	2101      	movs	r1, #1
  8002458:	6878      	ldr	r0, [r7, #4]
  800245a:	f000 f951 	bl	8002700 <DRV_Lora_ReadRegister>
-        if ((l_currentState & 0x07) != LoraState )
+		if ((l_currentState & 0x07) != LoraState)
  800245e:	7bbb      	ldrb	r3, [r7, #14]
  8002460:	f003 0207 	and.w	r2, r3, #7
  8002464:	78fb      	ldrb	r3, [r7, #3]
  8002466:	429a      	cmp	r2, r3
  8002468:	d001      	beq.n	800246e <DRV_LoraSwitchMode+0x74>
-        {
-        	retVal = STD_E_NOT_OK;
+		{
+			retVal = STD_E_NOT_OK;
  800246a:	2301      	movs	r3, #1
  800246c:	73fb      	strb	r3, [r7, #15]
-        }
-    }
+		}
+	}
 
-    return retVal;
+	return retVal;
  800246e:	7bfb      	ldrb	r3, [r7, #15]
 }
  8002470:	4618      	mov	r0, r3
@@ -6191,6 +6249,10 @@ LORA_ReturnTypedef DRV_LoraSwitchMode(LORA_HandleTypedef* LORA_Instance, Lora_St
  8002476:	bd80      	pop	{r7, pc}
 
 08002478 <DRV_LoraTransmit>:
+ * @in length Number of bytes to transmit (max 255)
+ * @in timeOut Timeout in milliseconds
+ * @output STD_E_OK if transmission successful, STD_E_NOT_OK on timeout
+ */
 LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* PtrSourceData, uint16_t length, uint16_t timeOut)
 {
  8002478:	b580      	push	{r7, lr}
@@ -6204,34 +6266,41 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
  8002488:	80fb      	strh	r3, [r7, #6]
  800248a:	4613      	mov	r3, r2
  800248c:	80bb      	strh	r3, [r7, #4]
-	LORA_ReturnTypedef retVal = STD_E_OK ;
+	LORA_ReturnTypedef retVal = STD_E_OK;
  800248e:	2300      	movs	r3, #0
  8002490:	75fb      	strb	r3, [r7, #23]
-	uint8_t l_irqStatus = 0 ;
+	uint8_t l_irqStatus = 0;
  8002492:	2300      	movs	r3, #0
  8002494:	74fb      	strb	r3, [r7, #19]
-	uint16_t l_timeout  = timeOut ;
+	uint16_t l_timeout = timeOut;
  8002496:	88bb      	ldrh	r3, [r7, #4]
  8002498:	82bb      	strh	r3, [r7, #20]
-	/* Switch mode of LoRa to standby  */
+	
+	/* ========================================================================
+	 * PREPARE FOR TRANSMISSION
+	 * ======================================================================== */
+	/* Switch to standby mode (required before TX) */
 	DRV_LoraSwitchMode(LORA_Instance, LORA_STANDBY_STATE);
  800249a:	2101      	movs	r1, #1
  800249c:	68f8      	ldr	r0, [r7, #12]
  800249e:	f7ff ffac 	bl	80023fa <DRV_LoraSwitchMode>
 
-    /* Reset address pointer */
-	DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_ADDR_PTR, 0x00); // RegFifoAddrPtr
+	/* Reset FIFO address pointers to start of TX buffer */
+	DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_ADDR_PTR, 0x00);
  80024a2:	2200      	movs	r2, #0
  80024a4:	210d      	movs	r1, #13
  80024a6:	68f8      	ldr	r0, [r7, #12]
  80024a8:	f000 f96d 	bl	8002786 <DRV_Lora_WriteRegister>
-	DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_TX_BASE_ADDR, 0x00); // RegFifoTxBaseAddr
+	DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_TX_BASE_ADDR, 0x00);
  80024ac:	2200      	movs	r2, #0
  80024ae:	210e      	movs	r1, #14
  80024b0:	68f8      	ldr	r0, [r7, #12]
  80024b2:	f000 f968 	bl	8002786 <DRV_Lora_WriteRegister>
 
-	/* Write data into fifo */
+	/* ========================================================================
+	 * LOAD DATA INTO FIFO
+	 * ======================================================================== */
+	/* Write payload data to FIFO buffer */
 	DRV_Lora_WriteFifo(LORA_Instance, PtrSourceData, length);
  80024b6:	88fb      	ldrh	r3, [r7, #6]
  80024b8:	461a      	mov	r2, r3
@@ -6239,7 +6308,7 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
  80024bc:	68f8      	ldr	r0, [r7, #12]
  80024be:	f000 f9e6 	bl	800288e <DRV_Lora_WriteFifo>
 
-	/* Set number of byte to transmit */
+	/* Set the payload length register */
 	DRV_Lora_WriteRegister(LORA_Instance, REG_PAYLOAD_LENGTH, length);
  80024c2:	88fb      	ldrh	r3, [r7, #6]
  80024c4:	b2db      	uxtb	r3, r3
@@ -6248,20 +6317,29 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
  80024ca:	68f8      	ldr	r0, [r7, #12]
  80024cc:	f000 f95b 	bl	8002786 <DRV_Lora_WriteRegister>
 
-	/* Move state to transmit */
+	/* ========================================================================
+	 * START TRANSMISSION
+	 * ======================================================================== */
+	/* Switch to transmit mode (starts transmission automatically) */
 	DRV_LoraSwitchMode(LORA_Instance, LORA_TRANSMIT_STATE);
  80024d0:	2103      	movs	r1, #3
  80024d2:	68f8      	ldr	r0, [r7, #12]
  80024d4:	f7ff ff91 	bl	80023fa <DRV_LoraSwitchMode>
 
-	/* Polling bit TX Transmit done */
-	if(LORA_Instance->OperationMode == LORA_MODE_POLLING)
+	/* ========================================================================
+	 * WAIT FOR TRANSMISSION COMPLETE
+	 * ======================================================================== */
+	if (LORA_Instance->OperationMode == LORA_MODE_POLLING)
  80024d8:	68fb      	ldr	r3, [r7, #12]
  80024da:	7f1b      	ldrb	r3, [r3, #28]
  80024dc:	2b00      	cmp	r3, #0
  80024de:	d129      	bne.n	8002534 <DRV_LoraTransmit+0xbc>
 	{
-		while( (l_irqStatus & (1 << 3)) == 0 && l_timeout -- > 1 )
+		/**
+		 * Polling mode: Wait for TxDone flag (bit 3)
+		 * Keep checking IRQ flags register until transmission complete or timeout
+		 */
+		while ((l_irqStatus & (1 << 3)) == 0 && l_timeout-- > 1)
  80024e0:	e009      	b.n	80024f6 <DRV_LoraTransmit+0x7e>
 		{
 			DRV_Lora_ReadRegister(LORA_Instance, REG_IRQ_FLAGS, &l_irqStatus);
@@ -6273,7 +6351,7 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
 			HAL_Delay(1);
  80024f0:	2001      	movs	r0, #1
  80024f2:	f7fe fa89 	bl	8000a08 <HAL_Delay>
-		while( (l_irqStatus & (1 << 3)) == 0 && l_timeout -- > 1 )
+		while ((l_irqStatus & (1 << 3)) == 0 && l_timeout-- > 1)
  80024f6:	7cfb      	ldrb	r3, [r7, #19]
  80024f8:	f003 0308 	and.w	r3, r3, #8
  80024fc:	2b00      	cmp	r3, #0
@@ -6284,7 +6362,9 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
  8002506:	2b01      	cmp	r3, #1
  8002508:	d8eb      	bhi.n	80024e2 <DRV_LoraTransmit+0x6a>
 		}
-		if ( l_timeout == 0 )
+		
+		/* Check if timeout occurred */
+		if (l_timeout == 0)
  800250a:	8abb      	ldrh	r3, [r7, #20]
  800250c:	2b00      	cmp	r3, #0
  800250e:	d101      	bne.n	8002514 <DRV_LoraTransmit+0x9c>
@@ -6293,17 +6373,18 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
  8002510:	2301      	movs	r3, #1
  8002512:	75fb      	strb	r3, [r7, #23]
 		}
-		/* Clear IRQ previous state */
+		
+		/* Clear all interrupt flags */
 		DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
  8002514:	22ff      	movs	r2, #255	@ 0xff
  8002516:	2112      	movs	r1, #18
  8002518:	68f8      	ldr	r0, [r7, #12]
  800251a:	f000 f934 	bl	8002786 <DRV_Lora_WriteRegister>
  800251e:	e01d      	b.n	800255c <DRV_LoraTransmit+0xe4>
-	}
-	else
-	{
-		while( (l_irqStatus & (1 << 3)) == 0 && l_timeout -- > 1 )
+		 * Interrupt mode: Still poll for completion in this implementation
+		 * Note: Could be improved to use callback from IRQ handler
+		 */
+		while ((l_irqStatus & (1 << 3)) == 0 && l_timeout-- > 1)
 		{
 			DRV_Lora_ReadRegister(LORA_Instance, REG_IRQ_FLAGS, &l_irqStatus);
  8002520:	f107 0313 	add.w	r3, r7, #19
@@ -6314,7 +6395,7 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
 			HAL_Delay(1);
  800252e:	2001      	movs	r0, #1
  8002530:	f7fe fa6a 	bl	8000a08 <HAL_Delay>
-		while( (l_irqStatus & (1 << 3)) == 0 && l_timeout -- > 1 )
+		while ((l_irqStatus & (1 << 3)) == 0 && l_timeout-- > 1)
  8002534:	7cfb      	ldrb	r3, [r7, #19]
  8002536:	f003 0308 	and.w	r3, r3, #8
  800253a:	2b00      	cmp	r3, #0
@@ -6325,7 +6406,8 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
  8002544:	2b01      	cmp	r3, #1
  8002546:	d8eb      	bhi.n	8002520 <DRV_LoraTransmit+0xa8>
 		}
-		if ( l_timeout == 0 )
+		
+		if (l_timeout == 0)
  8002548:	8abb      	ldrh	r3, [r7, #20]
  800254a:	2b00      	cmp	r3, #0
  800254c:	d101      	bne.n	8002552 <DRV_LoraTransmit+0xda>
@@ -6334,16 +6416,18 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
  800254e:	2301      	movs	r3, #1
  8002550:	75fb      	strb	r3, [r7, #23]
 		}
-		/* Clear IRQ previous state */
+		
+		/* Clear all interrupt flags */
 		DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
  8002552:	22ff      	movs	r2, #255	@ 0xff
  8002554:	2112      	movs	r1, #18
  8002556:	68f8      	ldr	r0, [r7, #12]
  8002558:	f000 f915 	bl	8002786 <DRV_Lora_WriteRegister>
 
-		/* @brief : advoid compiler warning */
+		/* Avoid compiler warning for unused variable */
 		(void)l_irqStatus;
 	}
+	
 	return retVal;
  800255c:	7dfb      	ldrb	r3, [r7, #23]
 }
@@ -6353,6 +6437,10 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
  8002564:	bd80      	pop	{r7, pc}
 
 08002566 <DRV_LoraReceive>:
+ * @in length Maximum buffer size (not used, actual length read from register)
+ * @in timeOut Timeout in milliseconds
+ * @output STD_E_OK if reception successful, STD_E_NOT_OK on timeout
+ */
 LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* PtrDestinationData, uint16_t length, uint16_t timeOut)
 {
  8002566:	b580      	push	{r7, lr}
@@ -6366,35 +6454,42 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
  8002576:	80fb      	strh	r3, [r7, #6]
  8002578:	4613      	mov	r3, r2
  800257a:	80bb      	strh	r3, [r7, #4]
-	LORA_ReturnTypedef retVal = STD_E_OK ;
+	LORA_ReturnTypedef retVal = STD_E_OK;
  800257c:	2300      	movs	r3, #0
  800257e:	75fb      	strb	r3, [r7, #23]
-	uint8_t l_irqStatus = 0 ;
+	uint8_t l_irqStatus = 0;
  8002580:	2300      	movs	r3, #0
  8002582:	74fb      	strb	r3, [r7, #19]
-	uint8_t l_rx_address = 0 ;
+	uint8_t l_rx_address = 0;
  8002584:	2300      	movs	r3, #0
  8002586:	74bb      	strb	r3, [r7, #18]
-	uint8_t l_length = 0 ;
+	uint8_t l_length = 0;
  8002588:	2300      	movs	r3, #0
  800258a:	747b      	strb	r3, [r7, #17]
-	uint16_t l_timeout = timeOut ;
+	uint16_t l_timeout = timeOut;
  800258c:	88bb      	ldrh	r3, [r7, #4]
  800258e:	82bb      	strh	r3, [r7, #20]
-	/* Polling bit TX Transmit done */
-	if(LORA_Instance->OperationMode == LORA_MODE_POLLING)
+	
+	/* ========================================================================
+	 * RECEIVE DATA BASED ON OPERATION MODE
+	 * ======================================================================== */
+	if (LORA_Instance->OperationMode == LORA_MODE_POLLING)
  8002590:	68fb      	ldr	r3, [r7, #12]
  8002592:	7f1b      	ldrb	r3, [r3, #28]
  8002594:	2b00      	cmp	r3, #0
  8002596:	d143      	bne.n	8002620 <DRV_LoraReceive+0xba>
 	{
-		/* Switch mode of LoRa to RX_Continuos  */
+		/* Switch to continuous receive mode */
 		DRV_LoraSwitchMode(LORA_Instance, LORA_RECEIVE_CONTINUOUS_STATE);
  8002598:	2105      	movs	r1, #5
  800259a:	68f8      	ldr	r0, [r7, #12]
  800259c:	f7ff ff2d 	bl	80023fa <DRV_LoraSwitchMode>
 
-		while( (l_irqStatus & (1 << 6)) == 0 && l_timeout -- > 1)
+		/**
+		 * Wait for RxDone flag (bit 6)
+		 * Poll IRQ flags register until packet received or timeout
+		 */
+		while ((l_irqStatus & (1 << 6)) == 0 && l_timeout-- > 1)
  80025a0:	e009      	b.n	80025b6 <DRV_LoraReceive+0x50>
 		{
 			DRV_Lora_ReadRegister(LORA_Instance, REG_IRQ_FLAGS, &l_irqStatus);
@@ -6406,7 +6501,7 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
 			HAL_Delay(1);
  80025b0:	2001      	movs	r0, #1
  80025b2:	f7fe fa29 	bl	8000a08 <HAL_Delay>
-		while( (l_irqStatus & (1 << 6)) == 0 && l_timeout -- > 1)
+		while ((l_irqStatus & (1 << 6)) == 0 && l_timeout-- > 1)
  80025b6:	7cfb      	ldrb	r3, [r7, #19]
  80025b8:	f003 0340 	and.w	r3, r3, #64	@ 0x40
  80025bc:	2b00      	cmp	r3, #0
@@ -6417,7 +6512,9 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
  80025c6:	2b01      	cmp	r3, #1
  80025c8:	d8eb      	bhi.n	80025a2 <DRV_LoraReceive+0x3c>
 		}
-		if (l_timeout == 0 )
+		
+		/* Check if timeout occurred */
+		if (l_timeout == 0)
  80025ca:	8abb      	ldrh	r3, [r7, #20]
  80025cc:	2b00      	cmp	r3, #0
  80025ce:	d102      	bne.n	80025d6 <DRV_LoraReceive+0x70>
@@ -6426,10 +6523,11 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
  80025d0:	2301      	movs	r3, #1
  80025d2:	75fb      	strb	r3, [r7, #23]
  80025d4:	e048      	b.n	8002668 <DRV_LoraReceive+0x102>
-		}
-		else
-		{
-			/* Read address of Rx_Base_Addres_Ptr*/
+			 * ================================================================ */
+			/**
+			 * Read the address where received packet starts in FIFO
+			 * This is set by the modem automatically
+			 */
 			DRV_Lora_ReadRegister(LORA_Instance, REG_FIFO_RX_CURRENT_ADDR, &l_rx_address);
  80025d6:	f107 0312 	add.w	r3, r7, #18
  80025da:	461a      	mov	r2, r3
@@ -6437,7 +6535,7 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
  80025de:	68f8      	ldr	r0, [r7, #12]
  80025e0:	f000 f88e 	bl	8002700 <DRV_Lora_ReadRegister>
 
-			/* Set ptr of Fifo_Address Ptr */
+			/* Point FIFO address pointer to start of received packet */
 			DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_ADDR_PTR, l_rx_address);
  80025e4:	7cbb      	ldrb	r3, [r7, #18]
  80025e6:	461a      	mov	r2, r3
@@ -6445,7 +6543,7 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
  80025ea:	68f8      	ldr	r0, [r7, #12]
  80025ec:	f000 f8cb 	bl	8002786 <DRV_Lora_WriteRegister>
 
-			/* Read payload of current data */
+			/* Read actual payload length of received packet */
 			DRV_Lora_ReadRegister(LORA_Instance, REG_RX_NB_BYTES, &l_length);
  80025f0:	f107 0311 	add.w	r3, r7, #17
  80025f4:	461a      	mov	r2, r3
@@ -6453,7 +6551,7 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
  80025f8:	68f8      	ldr	r0, [r7, #12]
  80025fa:	f000 f881 	bl	8002700 <DRV_Lora_ReadRegister>
 
-			/* Read data from fifo  */
+			/* Read data from FIFO buffer */
 			DRV_Lora_ReadFifo(LORA_Instance, PtrDestinationData, l_length);
  80025fe:	7c7b      	ldrb	r3, [r7, #17]
  8002600:	461a      	mov	r2, r3
@@ -6461,25 +6559,25 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
  8002604:	68f8      	ldr	r0, [r7, #12]
  8002606:	f000 f902 	bl	800280e <DRV_Lora_ReadFifo>
 
-			/* Reset fifo rx base address */
-			DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_RX_BASE_ADDR, 0x00); // RegFifoRxBaseAddr
+			/* Reset RX FIFO base address for next reception */
+			DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_RX_BASE_ADDR, 0x00);
  800260a:	2200      	movs	r2, #0
  800260c:	210f      	movs	r1, #15
  800260e:	68f8      	ldr	r0, [r7, #12]
  8002610:	f000 f8b9 	bl	8002786 <DRV_Lora_WriteRegister>
 
-			/* Clear IRQ previous state */
+			/* Clear all interrupt flags */
 			DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
  8002614:	22ff      	movs	r2, #255	@ 0xff
  8002616:	2112      	movs	r1, #18
  8002618:	68f8      	ldr	r0, [r7, #12]
  800261a:	f000 f8b4 	bl	8002786 <DRV_Lora_WriteRegister>
  800261e:	e023      	b.n	8002668 <DRV_LoraReceive+0x102>
-		}
-	}
-	else
-	{
-		/* Read address of Rx_Base_Addres_Ptr*/
+		 * Interrupt mode: Data already received (triggered by IRQ)
+		 * Just read the data from FIFO
+		 */
+		
+		/* Read FIFO address where packet starts */
 		DRV_Lora_ReadRegister(LORA_Instance, REG_FIFO_RX_CURRENT_ADDR, &l_rx_address);
  8002620:	f107 0312 	add.w	r3, r7, #18
  8002624:	461a      	mov	r2, r3
@@ -6487,7 +6585,7 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
  8002628:	68f8      	ldr	r0, [r7, #12]
  800262a:	f000 f869 	bl	8002700 <DRV_Lora_ReadRegister>
 
-		/* Set ptr of Fifo_Address Ptr */
+		/* Set FIFO pointer to received packet location */
 		DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_ADDR_PTR, l_rx_address);
  800262e:	7cbb      	ldrb	r3, [r7, #18]
  8002630:	461a      	mov	r2, r3
@@ -6495,7 +6593,7 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
  8002634:	68f8      	ldr	r0, [r7, #12]
  8002636:	f000 f8a6 	bl	8002786 <DRV_Lora_WriteRegister>
 
-		/* Read payload of current data */
+		/* Read payload length */
 		DRV_Lora_ReadRegister(LORA_Instance, REG_RX_NB_BYTES, &l_length);
  800263a:	f107 0311 	add.w	r3, r7, #17
  800263e:	461a      	mov	r2, r3
@@ -6503,7 +6601,7 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
  8002642:	68f8      	ldr	r0, [r7, #12]
  8002644:	f000 f85c 	bl	8002700 <DRV_Lora_ReadRegister>
 
-		/* Read data from fifo  */
+		/* Read data from FIFO */
 		DRV_Lora_ReadFifo(LORA_Instance, PtrDestinationData, l_length);
  8002648:	7c7b      	ldrb	r3, [r7, #17]
  800264a:	461a      	mov	r2, r3
@@ -6511,22 +6609,24 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
  800264e:	68f8      	ldr	r0, [r7, #12]
  8002650:	f000 f8dd 	bl	800280e <DRV_Lora_ReadFifo>
 
-		/* Reset fifo rx base address */
-		DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_RX_BASE_ADDR, 0x00); // RegFifoRxBaseAddr
+		/* Reset RX FIFO base address */
+		DRV_Lora_WriteRegister(LORA_Instance, REG_FIFO_RX_BASE_ADDR, 0x00);
  8002654:	2200      	movs	r2, #0
  8002656:	210f      	movs	r1, #15
  8002658:	68f8      	ldr	r0, [r7, #12]
  800265a:	f000 f894 	bl	8002786 <DRV_Lora_WriteRegister>
 
-		/* Clear IRQ previous state */
+		/* Clear interrupt flags */
 		DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
  800265e:	22ff      	movs	r2, #255	@ 0xff
  8002660:	2112      	movs	r1, #18
  8002662:	68f8      	ldr	r0, [r7, #12]
  8002664:	f000 f88f 	bl	8002786 <DRV_Lora_WriteRegister>
-		/* @brief : advoid compiler warning */
+		
+		/* Avoid compiler warning */
 		(void)l_irqStatus;
 	}
+	
 	return retVal;
  8002668:	7dfb      	ldrb	r3, [r7, #23]
 }
@@ -6537,16 +6637,25 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
 	...
 
 08002674 <DRV_LoraConfigFrequency>:
+ *          Simplified: FRF = Frequency * 0.016384
+ * @in LORA_Instance Pointer to LoRa handle structure (contains Frequency field)
+ * @output STD_E_OK (always successful in current implementation)
+ */
 LORA_ReturnTypedef DRV_LoraConfigFrequency(LORA_HandleTypedef* LORA_Instance)
 {
  8002674:	b580      	push	{r7, lr}
  8002676:	b084      	sub	sp, #16
  8002678:	af00      	add	r7, sp, #0
  800267a:	6078      	str	r0, [r7, #4]
-	LORA_ReturnTypedef retVal = 0 ;
+	LORA_ReturnTypedef retVal = STD_E_OK;
  800267c:	2300      	movs	r3, #0
  800267e:	73fb      	strb	r3, [r7, #15]
-    uint32_t frf = (uint32_t)((float)LORA_Instance->Frequency * 0.016384f);
+	/**
+	 * Calculate frequency register value
+	 * Example: For 433 MHz:
+	 * FRF = 433000000 * 0.016384 = 7094272 = 0x6C4000
+	 */
+	uint32_t frf = (uint32_t)((float)LORA_Instance->Frequency * 0.016384f);
  8002680:	687b      	ldr	r3, [r7, #4]
  8002682:	6a1b      	ldr	r3, [r3, #32]
  8002684:	4618      	mov	r0, r3
@@ -6560,7 +6669,9 @@ LORA_ReturnTypedef DRV_LoraConfigFrequency(LORA_HandleTypedef* LORA_Instance)
  8002698:	f7fd ff1a 	bl	80004d0 <__aeabi_f2uiz>
  800269c:	4603      	mov	r3, r0
  800269e:	60bb      	str	r3, [r7, #8]
-    DRV_Lora_WriteRegister(LORA_Instance, 0x06, (uint8_t)(frf >> 16));
+	
+	/* Write frequency to 3 separate registers (MSB, MID, LSB) */
+	DRV_Lora_WriteRegister(LORA_Instance, 0x06, (uint8_t)(frf >> 16));  /* FRF_MSB */
  80026a0:	68bb      	ldr	r3, [r7, #8]
  80026a2:	0c1b      	lsrs	r3, r3, #16
  80026a4:	b2db      	uxtb	r3, r3
@@ -6568,7 +6679,7 @@ LORA_ReturnTypedef DRV_LoraConfigFrequency(LORA_HandleTypedef* LORA_Instance)
  80026a8:	2106      	movs	r1, #6
  80026aa:	6878      	ldr	r0, [r7, #4]
  80026ac:	f000 f86b 	bl	8002786 <DRV_Lora_WriteRegister>
-    DRV_Lora_WriteRegister(LORA_Instance, 0x07, (uint8_t)(frf >> 8));
+	DRV_Lora_WriteRegister(LORA_Instance, 0x07, (uint8_t)(frf >> 8));   /* FRF_MID */
  80026b0:	68bb      	ldr	r3, [r7, #8]
  80026b2:	0a1b      	lsrs	r3, r3, #8
  80026b4:	b2db      	uxtb	r3, r3
@@ -6576,14 +6687,15 @@ LORA_ReturnTypedef DRV_LoraConfigFrequency(LORA_HandleTypedef* LORA_Instance)
  80026b8:	2107      	movs	r1, #7
  80026ba:	6878      	ldr	r0, [r7, #4]
  80026bc:	f000 f863 	bl	8002786 <DRV_Lora_WriteRegister>
-    DRV_Lora_WriteRegister(LORA_Instance, 0x08, (uint8_t)(frf >> 0));
+	DRV_Lora_WriteRegister(LORA_Instance, 0x08, (uint8_t)(frf >> 0));   /* FRF_LSB */
  80026c0:	68bb      	ldr	r3, [r7, #8]
  80026c2:	b2db      	uxtb	r3, r3
  80026c4:	461a      	mov	r2, r3
  80026c6:	2108      	movs	r1, #8
  80026c8:	6878      	ldr	r0, [r7, #4]
  80026ca:	f000 f85c 	bl	8002786 <DRV_Lora_WriteRegister>
-    return retVal;
+	
+	return retVal;
  80026ce:	7bfb      	ldrb	r3, [r7, #15]
 }
  80026d0:	4618      	mov	r0, r3
@@ -6593,30 +6705,29 @@ LORA_ReturnTypedef DRV_LoraConfigFrequency(LORA_HandleTypedef* LORA_Instance)
  80026d8:	3c8637bd 	.word	0x3c8637bd
 
 080026dc <DRV_Lora_GetVersion>:
-{
-	LORA_ReturnTypedef retVal = 0 ;
-	return retVal;
-}
+ *          Useful for debugging SPI communication issues
+ * @in LORA_Instance Pointer to LoRa handle structure
+ * @output Chip version number (0x12 for SX1278)
+ */
 uint8_t DRV_Lora_GetVersion(LORA_HandleTypedef* LORA_Instance)
 {
  80026dc:	b580      	push	{r7, lr}
  80026de:	b084      	sub	sp, #16
  80026e0:	af00      	add	r7, sp, #0
  80026e2:	6078      	str	r0, [r7, #4]
-    uint8_t retVal = 0 ;
+	uint8_t retVal = 0;
  80026e4:	2300      	movs	r3, #0
  80026e6:	73fb      	strb	r3, [r7, #15]
 
-    /* Read register version in Lora to get version */
-    DRV_Lora_ReadRegister(LORA_Instance, REG_VERSION, &retVal);
+	/* Read version register (should return 0x12 for SX1278) */
+	DRV_Lora_ReadRegister(LORA_Instance, REG_VERSION, &retVal);
  80026e8:	f107 030f 	add.w	r3, r7, #15
  80026ec:	461a      	mov	r2, r3
  80026ee:	2142      	movs	r1, #66	@ 0x42
  80026f0:	6878      	ldr	r0, [r7, #4]
  80026f2:	f000 f805 	bl	8002700 <DRV_Lora_ReadRegister>
 
-    /* Return version */
-    return retVal;
+	return retVal;
  80026f6:	7bfb      	ldrb	r3, [r7, #15]
 }
  80026f8:	4618      	mov	r0, r3
@@ -6625,8 +6736,9 @@ uint8_t DRV_Lora_GetVersion(LORA_HandleTypedef* LORA_Instance)
  80026fe:	bd80      	pop	{r7, pc}
 
 08002700 <DRV_Lora_ReadRegister>:
-/*
- * Definition static function
+ * @in reg Register address to read (0x00-0x7F)
+ * @in data Pointer to store the read byte
+ * @output STD_E_OK if successful, STD_E_NOT_OK on SPI error
  */
 static LORA_ReturnTypedef DRV_Lora_ReadRegister(LORA_HandleTypedef *LORA_Instance, const uint8_t reg, uint8_t *data)
 {
@@ -6637,19 +6749,22 @@ static LORA_ReturnTypedef DRV_Lora_ReadRegister(LORA_HandleTypedef *LORA_Instanc
  8002708:	460b      	mov	r3, r1
  800270a:	607a      	str	r2, [r7, #4]
  800270c:	72fb      	strb	r3, [r7, #11]
-    HAL_StatusTypeDef TransmitStatus = HAL_OK;
+	HAL_StatusTypeDef TransmitStatus = HAL_OK;
  800270e:	2300      	movs	r3, #0
  8002710:	75bb      	strb	r3, [r7, #22]
-    LORA_ReturnTypedef  retVal = STD_E_OK ;
+	LORA_ReturnTypedef retVal = STD_E_OK;
  8002712:	2300      	movs	r3, #0
  8002714:	75fb      	strb	r3, [r7, #23]
-    uint8_t l_register = LORA_READ_REG(reg);
+	
+	/* Prepare register address for read (MSB = 0) */
+	uint8_t l_register = LORA_READ_REG(reg);
  8002716:	7afb      	ldrb	r3, [r7, #11]
  8002718:	f003 037f 	and.w	r3, r3, #127	@ 0x7f
  800271c:	b2db      	uxtb	r3, r3
  800271e:	757b      	strb	r3, [r7, #21]
-    /* Pulll the Chip Select pin low */
-    HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_RESET);
+	
+	/* Assert chip select (active low) */
+	HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort, LORA_Instance->ChipSelectPin, GPIO_PIN_RESET);
  8002720:	68fb      	ldr	r3, [r7, #12]
  8002722:	6898      	ldr	r0, [r3, #8]
  8002724:	68fb      	ldr	r3, [r7, #12]
@@ -6658,8 +6773,8 @@ static LORA_ReturnTypedef DRV_Lora_ReadRegister(LORA_HandleTypedef *LORA_Instanc
  800272a:	4619      	mov	r1, r3
  800272c:	f7fe fbf8 	bl	8000f20 <HAL_GPIO_WritePin>
 
-    /* Transmit register address which want to read from LORA on MOSI Line */
-    TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance,&l_register,1,10);
+	/* Send register address on MOSI */
+	TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance, &l_register, 1, 10);
  8002730:	68fb      	ldr	r3, [r7, #12]
  8002732:	6818      	ldr	r0, [r3, #0]
  8002734:	f107 0115 	add.w	r1, r7, #21
@@ -6669,13 +6784,13 @@ static LORA_ReturnTypedef DRV_Lora_ReadRegister(LORA_HandleTypedef *LORA_Instanc
  8002740:	4603      	mov	r3, r0
  8002742:	75bb      	strb	r3, [r7, #22]
 
-    /* Read data which come from LORA on MISO Line */
-    if ( TransmitStatus == HAL_OK)
+	/* Read data byte from MISO */
+	if (TransmitStatus == HAL_OK)
  8002744:	7dbb      	ldrb	r3, [r7, #22]
  8002746:	2b00      	cmp	r3, #0
  8002748:	d10e      	bne.n	8002768 <DRV_Lora_ReadRegister+0x68>
-    {
-        TransmitStatus = HAL_SPI_Receive(LORA_Instance->SPI_Instance,data,1,10);
+	{
+		TransmitStatus = HAL_SPI_Receive(LORA_Instance->SPI_Instance, data, 1, 10);
  800274a:	68fb      	ldr	r3, [r7, #12]
  800274c:	6818      	ldr	r0, [r3, #0]
  800274e:	230a      	movs	r3, #10
@@ -6684,26 +6799,26 @@ static LORA_ReturnTypedef DRV_Lora_ReadRegister(LORA_HandleTypedef *LORA_Instanc
  8002754:	f7ff f9bc 	bl	8001ad0 <HAL_SPI_Receive>
  8002758:	4603      	mov	r3, r0
  800275a:	75bb      	strb	r3, [r7, #22]
-        if(TransmitStatus != HAL_OK)
+		if (TransmitStatus != HAL_OK)
  800275c:	7dbb      	ldrb	r3, [r7, #22]
  800275e:	2b00      	cmp	r3, #0
  8002760:	d004      	beq.n	800276c <DRV_Lora_ReadRegister+0x6c>
-        {
-            retVal = STD_E_NOT_OK;
+		{
+			retVal = STD_E_NOT_OK;
  8002762:	2301      	movs	r3, #1
  8002764:	75fb      	strb	r3, [r7, #23]
  8002766:	e001      	b.n	800276c <DRV_Lora_ReadRegister+0x6c>
-        }
-    }
-    else
-    {
-        retVal = STD_E_NOT_OK;
+		}
+	}
+	else
+	{
+		retVal = STD_E_NOT_OK;
  8002768:	2301      	movs	r3, #1
  800276a:	75fb      	strb	r3, [r7, #23]
-    }
+	}
 
-    /* Driver the Chip Select to a hight logic level */
-    HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_SET);
+	/* Deassert chip select */
+	HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort, LORA_Instance->ChipSelectPin, GPIO_PIN_SET);
  800276c:	68fb      	ldr	r3, [r7, #12]
  800276e:	6898      	ldr	r0, [r3, #8]
  8002770:	68fb      	ldr	r3, [r7, #12]
@@ -6712,8 +6827,7 @@ static LORA_ReturnTypedef DRV_Lora_ReadRegister(LORA_HandleTypedef *LORA_Instanc
  8002776:	4619      	mov	r1, r3
  8002778:	f7fe fbd2 	bl	8000f20 <HAL_GPIO_WritePin>
 
-    /* Return result  */
-    return retVal;
+	return retVal;
  800277c:	7dfb      	ldrb	r3, [r7, #23]
 }
  800277e:	4618      	mov	r0, r3
@@ -6722,7 +6836,11 @@ static LORA_ReturnTypedef DRV_Lora_ReadRegister(LORA_HandleTypedef *LORA_Instanc
  8002784:	bd80      	pop	{r7, pc}
 
 08002786 <DRV_Lora_WriteRegister>:
-static LORA_ReturnTypedef DRV_Lora_WriteRegister(LORA_HandleTypedef *LORA_Instance,const uint8_t reg, uint8_t data)
+ * @in reg Register address to write (0x00-0x7F)
+ * @in data Data byte to write
+ * @output STD_E_OK if successful, STD_E_NOT_OK on SPI error
+ */
+static LORA_ReturnTypedef DRV_Lora_WriteRegister(LORA_HandleTypedef *LORA_Instance, const uint8_t reg, uint8_t data)
 {
  8002786:	b580      	push	{r7, lr}
  8002788:	b084      	sub	sp, #16
@@ -6732,19 +6850,22 @@ static LORA_ReturnTypedef DRV_Lora_WriteRegister(LORA_HandleTypedef *LORA_Instan
  8002790:	70fb      	strb	r3, [r7, #3]
  8002792:	4613      	mov	r3, r2
  8002794:	70bb      	strb	r3, [r7, #2]
-    HAL_StatusTypeDef TransmitStatus = HAL_OK;
+	HAL_StatusTypeDef TransmitStatus = HAL_OK;
  8002796:	2300      	movs	r3, #0
  8002798:	73bb      	strb	r3, [r7, #14]
-    LORA_ReturnTypedef  retVal = STD_E_OK ;
+	LORA_ReturnTypedef retVal = STD_E_OK;
  800279a:	2300      	movs	r3, #0
  800279c:	73fb      	strb	r3, [r7, #15]
-    uint8_t l_register = LORA_WRITE_REG(reg);
+	
+	/* Prepare register address for write (MSB = 1) */
+	uint8_t l_register = LORA_WRITE_REG(reg);
  800279e:	78fb      	ldrb	r3, [r7, #3]
  80027a0:	f063 037f 	orn	r3, r3, #127	@ 0x7f
  80027a4:	b2db      	uxtb	r3, r3
  80027a6:	737b      	strb	r3, [r7, #13]
-    /* Pull the Chip Select pin low */
-    HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_RESET);
+	
+	/* Assert chip select (active low) */
+	HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort, LORA_Instance->ChipSelectPin, GPIO_PIN_RESET);
  80027a8:	687b      	ldr	r3, [r7, #4]
  80027aa:	6898      	ldr	r0, [r3, #8]
  80027ac:	687b      	ldr	r3, [r7, #4]
@@ -6753,8 +6874,8 @@ static LORA_ReturnTypedef DRV_Lora_WriteRegister(LORA_HandleTypedef *LORA_Instan
  80027b2:	4619      	mov	r1, r3
  80027b4:	f7fe fbb4 	bl	8000f20 <HAL_GPIO_WritePin>
 
-    /* Transmit register address which want to read from LORA on MOSI Line */
-    TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance,&l_register,1,10);
+	/* Send register address */
+	TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance, &l_register, 1, 10);
  80027b8:	687b      	ldr	r3, [r7, #4]
  80027ba:	6818      	ldr	r0, [r3, #0]
  80027bc:	f107 010d 	add.w	r1, r7, #13
@@ -6764,13 +6885,13 @@ static LORA_ReturnTypedef DRV_Lora_WriteRegister(LORA_HandleTypedef *LORA_Instan
  80027c8:	4603      	mov	r3, r0
  80027ca:	73bb      	strb	r3, [r7, #14]
 
-    /* Transmit data which want to write to LORA on MISO Line */
-    if ( TransmitStatus == HAL_OK)
+	/* Send data byte */
+	if (TransmitStatus == HAL_OK)
  80027cc:	7bbb      	ldrb	r3, [r7, #14]
  80027ce:	2b00      	cmp	r3, #0
  80027d0:	d10e      	bne.n	80027f0 <DRV_Lora_WriteRegister+0x6a>
-    {
-        TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance,&data,1,10);
+	{
+		TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance, &data, 1, 10);
  80027d2:	687b      	ldr	r3, [r7, #4]
  80027d4:	6818      	ldr	r0, [r3, #0]
  80027d6:	1cb9      	adds	r1, r7, #2
@@ -6779,26 +6900,26 @@ static LORA_ReturnTypedef DRV_Lora_WriteRegister(LORA_HandleTypedef *LORA_Instan
  80027dc:	f7ff f834 	bl	8001848 <HAL_SPI_Transmit>
  80027e0:	4603      	mov	r3, r0
  80027e2:	73bb      	strb	r3, [r7, #14]
-        if(TransmitStatus != HAL_OK)
+		if (TransmitStatus != HAL_OK)
  80027e4:	7bbb      	ldrb	r3, [r7, #14]
  80027e6:	2b00      	cmp	r3, #0
  80027e8:	d004      	beq.n	80027f4 <DRV_Lora_WriteRegister+0x6e>
-        {
-            retVal = STD_E_NOT_OK;
+		{
+			retVal = STD_E_NOT_OK;
  80027ea:	2301      	movs	r3, #1
  80027ec:	73fb      	strb	r3, [r7, #15]
  80027ee:	e001      	b.n	80027f4 <DRV_Lora_WriteRegister+0x6e>
-        }
-    }
-    else
-    {
-        retVal = STD_E_NOT_OK;
+		}
+	}
+	else
+	{
+		retVal = STD_E_NOT_OK;
  80027f0:	2301      	movs	r3, #1
  80027f2:	73fb      	strb	r3, [r7, #15]
-    }
+	}
 
-    /* Driver the Chip Select to a hight logic level */
-    HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_SET);
+	/* Deassert chip select */
+	HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort, LORA_Instance->ChipSelectPin, GPIO_PIN_SET);
  80027f4:	687b      	ldr	r3, [r7, #4]
  80027f6:	6898      	ldr	r0, [r3, #8]
  80027f8:	687b      	ldr	r3, [r7, #4]
@@ -6807,8 +6928,7 @@ static LORA_ReturnTypedef DRV_Lora_WriteRegister(LORA_HandleTypedef *LORA_Instan
  80027fe:	4619      	mov	r1, r3
  8002800:	f7fe fb8e 	bl	8000f20 <HAL_GPIO_WritePin>
 
-    /* Return result  */
-    return retVal;
+	return retVal;
  8002804:	7bfb      	ldrb	r3, [r7, #15]
 }
  8002806:	4618      	mov	r0, r3
@@ -6817,6 +6937,10 @@ static LORA_ReturnTypedef DRV_Lora_WriteRegister(LORA_HandleTypedef *LORA_Instan
  800280c:	bd80      	pop	{r7, pc}
 
 0800280e <DRV_Lora_ReadFifo>:
+ * @in data Pointer to buffer for storing read data
+ * @in length Number of bytes to read from FIFO
+ * @output STD_E_OK if successful, STD_E_NOT_OK on SPI error
+ */
 static LORA_ReturnTypedef DRV_Lora_ReadFifo(LORA_HandleTypedef *LORA_Instance, uint8_t* data, uint16_t length)
 {
  800280e:	b580      	push	{r7, lr}
@@ -6826,18 +6950,20 @@ static LORA_ReturnTypedef DRV_Lora_ReadFifo(LORA_HandleTypedef *LORA_Instance, u
  8002816:	60b9      	str	r1, [r7, #8]
  8002818:	4613      	mov	r3, r2
  800281a:	80fb      	strh	r3, [r7, #6]
-    HAL_StatusTypeDef TransmitStatus = HAL_OK;
+	HAL_StatusTypeDef TransmitStatus = HAL_OK;
  800281c:	2300      	movs	r3, #0
  800281e:	75bb      	strb	r3, [r7, #22]
-    LORA_ReturnTypedef  retVal = STD_E_OK ;
+	LORA_ReturnTypedef retVal = STD_E_OK;
  8002820:	2300      	movs	r3, #0
  8002822:	75fb      	strb	r3, [r7, #23]
-    uint8_t l_register = LORA_READ_REG(REG_FIFO);
+	
+	/* FIFO register address for read operation */
+	uint8_t l_register = LORA_READ_REG(REG_FIFO);
  8002824:	2300      	movs	r3, #0
  8002826:	757b      	strb	r3, [r7, #21]
 
-    /* Pull the Chip Select pin low */
-    HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_RESET);
+	/* Assert chip select */
+	HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort, LORA_Instance->ChipSelectPin, GPIO_PIN_RESET);
  8002828:	68fb      	ldr	r3, [r7, #12]
  800282a:	6898      	ldr	r0, [r3, #8]
  800282c:	68fb      	ldr	r3, [r7, #12]
@@ -6846,8 +6972,8 @@ static LORA_ReturnTypedef DRV_Lora_ReadFifo(LORA_HandleTypedef *LORA_Instance, u
  8002832:	4619      	mov	r1, r3
  8002834:	f7fe fb74 	bl	8000f20 <HAL_GPIO_WritePin>
 
-    /* Transmit register address which want to read from LORA on MOSI Line */
-    TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance,&l_register,1,10);
+	/* Send FIFO register address */
+	TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance, &l_register, 1, 10);
  8002838:	68fb      	ldr	r3, [r7, #12]
  800283a:	6818      	ldr	r0, [r3, #0]
  800283c:	f107 0115 	add.w	r1, r7, #21
@@ -6857,13 +6983,13 @@ static LORA_ReturnTypedef DRV_Lora_ReadFifo(LORA_HandleTypedef *LORA_Instance, u
  8002848:	4603      	mov	r3, r0
  800284a:	75bb      	strb	r3, [r7, #22]
 
-    /* Transmit data which want to write to LORA on MISO Line */
-    if ( TransmitStatus == HAL_OK)
+	/* Read multiple bytes from FIFO */
+	if (TransmitStatus == HAL_OK)
  800284c:	7dbb      	ldrb	r3, [r7, #22]
  800284e:	2b00      	cmp	r3, #0
  8002850:	d10e      	bne.n	8002870 <DRV_Lora_ReadFifo+0x62>
-    {
-		TransmitStatus = HAL_SPI_Receive(LORA_Instance->SPI_Instance,data,length,10);
+	{
+		TransmitStatus = HAL_SPI_Receive(LORA_Instance->SPI_Instance, data, length, 10);
  8002852:	68fb      	ldr	r3, [r7, #12]
  8002854:	6818      	ldr	r0, [r3, #0]
  8002856:	88fa      	ldrh	r2, [r7, #6]
@@ -6872,7 +6998,7 @@ static LORA_ReturnTypedef DRV_Lora_ReadFifo(LORA_HandleTypedef *LORA_Instance, u
  800285c:	f7ff f938 	bl	8001ad0 <HAL_SPI_Receive>
  8002860:	4603      	mov	r3, r0
  8002862:	75bb      	strb	r3, [r7, #22]
-		if(TransmitStatus != HAL_OK)
+		if (TransmitStatus != HAL_OK)
  8002864:	7dbb      	ldrb	r3, [r7, #22]
  8002866:	2b00      	cmp	r3, #0
  8002868:	d004      	beq.n	8002874 <DRV_Lora_ReadFifo+0x66>
@@ -6882,16 +7008,16 @@ static LORA_ReturnTypedef DRV_Lora_ReadFifo(LORA_HandleTypedef *LORA_Instance, u
  800286c:	75fb      	strb	r3, [r7, #23]
  800286e:	e001      	b.n	8002874 <DRV_Lora_ReadFifo+0x66>
 		}
-    }
-    else
-    {
-        retVal = STD_E_NOT_OK;
+	}
+	else
+	{
+		retVal = STD_E_NOT_OK;
  8002870:	2301      	movs	r3, #1
  8002872:	75fb      	strb	r3, [r7, #23]
-    }
+	}
 
-    /* Driver the Chip Select to a hight logic level */
-    HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_SET);
+	/* Deassert chip select */
+	HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort, LORA_Instance->ChipSelectPin, GPIO_PIN_SET);
  8002874:	68fb      	ldr	r3, [r7, #12]
  8002876:	6898      	ldr	r0, [r3, #8]
  8002878:	68fb      	ldr	r3, [r7, #12]
@@ -6900,8 +7026,7 @@ static LORA_ReturnTypedef DRV_Lora_ReadFifo(LORA_HandleTypedef *LORA_Instance, u
  800287e:	4619      	mov	r1, r3
  8002880:	f7fe fb4e 	bl	8000f20 <HAL_GPIO_WritePin>
 
-    /* Return result  */
-    return retVal;
+	return retVal;
  8002884:	7dfb      	ldrb	r3, [r7, #23]
 }
  8002886:	4618      	mov	r0, r3
@@ -6910,6 +7035,10 @@ static LORA_ReturnTypedef DRV_Lora_ReadFifo(LORA_HandleTypedef *LORA_Instance, u
  800288c:	bd80      	pop	{r7, pc}
 
 0800288e <DRV_Lora_WriteFifo>:
+ * @in data Pointer to data buffer to write
+ * @in length Number of bytes to write to FIFO
+ * @output STD_E_OK if successful, STD_E_NOT_OK on SPI error
+ */
 static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, uint8_t* data, uint16_t length)
 {
  800288e:	b580      	push	{r7, lr}
@@ -6919,18 +7048,20 @@ static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, 
  8002896:	60b9      	str	r1, [r7, #8]
  8002898:	4613      	mov	r3, r2
  800289a:	80fb      	strh	r3, [r7, #6]
-    HAL_StatusTypeDef TransmitStatus = HAL_OK;
+	HAL_StatusTypeDef TransmitStatus = HAL_OK;
  800289c:	2300      	movs	r3, #0
  800289e:	75bb      	strb	r3, [r7, #22]
-    LORA_ReturnTypedef  retVal = STD_E_OK ;
+	LORA_ReturnTypedef retVal = STD_E_OK;
  80028a0:	2300      	movs	r3, #0
  80028a2:	75fb      	strb	r3, [r7, #23]
-    uint8_t l_register = LORA_WRITE_REG(REG_FIFO);
+	
+	/* FIFO register address for write operation */
+	uint8_t l_register = LORA_WRITE_REG(REG_FIFO);
  80028a4:	2380      	movs	r3, #128	@ 0x80
  80028a6:	757b      	strb	r3, [r7, #21]
 
-    /* Pull the Chip Select pin low */
-    HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_RESET);
+	/* Assert chip select */
+	HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort, LORA_Instance->ChipSelectPin, GPIO_PIN_RESET);
  80028a8:	68fb      	ldr	r3, [r7, #12]
  80028aa:	6898      	ldr	r0, [r3, #8]
  80028ac:	68fb      	ldr	r3, [r7, #12]
@@ -6939,8 +7070,8 @@ static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, 
  80028b2:	4619      	mov	r1, r3
  80028b4:	f7fe fb34 	bl	8000f20 <HAL_GPIO_WritePin>
 
-    /* Transmit register address which want to read from LORA on MOSI Line */
-    TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance,&l_register,1,10);
+	/* Send FIFO register address */
+	TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance, &l_register, 1, 10);
  80028b8:	68fb      	ldr	r3, [r7, #12]
  80028ba:	6818      	ldr	r0, [r3, #0]
  80028bc:	f107 0115 	add.w	r1, r7, #21
@@ -6950,13 +7081,13 @@ static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, 
  80028c8:	4603      	mov	r3, r0
  80028ca:	75bb      	strb	r3, [r7, #22]
 
-    /* Transmit data which want to write to LORA on MISO Line */
-    if ( TransmitStatus == HAL_OK)
+	/* Write multiple bytes to FIFO */
+	if (TransmitStatus == HAL_OK)
  80028cc:	7dbb      	ldrb	r3, [r7, #22]
  80028ce:	2b00      	cmp	r3, #0
  80028d0:	d10e      	bne.n	80028f0 <DRV_Lora_WriteFifo+0x62>
-    {
-		TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance,data,length,10);
+	{
+		TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance, data, length, 10);
  80028d2:	68fb      	ldr	r3, [r7, #12]
  80028d4:	6818      	ldr	r0, [r3, #0]
  80028d6:	88fa      	ldrh	r2, [r7, #6]
@@ -6965,7 +7096,7 @@ static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, 
  80028dc:	f7fe ffb4 	bl	8001848 <HAL_SPI_Transmit>
  80028e0:	4603      	mov	r3, r0
  80028e2:	75bb      	strb	r3, [r7, #22]
-		if(TransmitStatus != HAL_OK)
+		if (TransmitStatus != HAL_OK)
  80028e4:	7dbb      	ldrb	r3, [r7, #22]
  80028e6:	2b00      	cmp	r3, #0
  80028e8:	d004      	beq.n	80028f4 <DRV_Lora_WriteFifo+0x66>
@@ -6975,16 +7106,16 @@ static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, 
  80028ec:	75fb      	strb	r3, [r7, #23]
  80028ee:	e001      	b.n	80028f4 <DRV_Lora_WriteFifo+0x66>
 		}
-    }
-    else
-    {
-        retVal = STD_E_NOT_OK;
+	}
+	else
+	{
+		retVal = STD_E_NOT_OK;
  80028f0:	2301      	movs	r3, #1
  80028f2:	75fb      	strb	r3, [r7, #23]
-    }
+	}
 
-    /* Driver the Chip Select to a hight logic level */
-    HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_SET);
+	/* Deassert chip select */
+	HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort, LORA_Instance->ChipSelectPin, GPIO_PIN_SET);
  80028f4:	68fb      	ldr	r3, [r7, #12]
  80028f6:	6898      	ldr	r0, [r3, #8]
  80028f8:	68fb      	ldr	r3, [r7, #12]
@@ -6993,10 +7124,8 @@ static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, 
  80028fe:	4619      	mov	r1, r3
  8002900:	f7fe fb0e 	bl	8000f20 <HAL_GPIO_WritePin>
 
-    /* Return result  */
-    return retVal;
+	return retVal;
  8002904:	7dfb      	ldrb	r3, [r7, #23]
-}
  8002906:	4618      	mov	r0, r3
  8002908:	3718      	adds	r7, #24
  800290a:	46bd      	mov	sp, r7
