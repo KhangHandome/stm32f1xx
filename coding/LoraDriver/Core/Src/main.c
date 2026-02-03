@@ -65,12 +65,12 @@ LORA_HandleTypedef Lora_Instance_0 =
 		.Dio_0_Pin       = LORA_DIO0_PIN_Pin,
 		.Dio_0_Port      = LORA_DIO0_PIN_GPIO_Port,
 //		.OperationMode   = LORA_MODE_INTERRUPT,
-		.OperationMode   = LORA_MODE_INTERRUPT,
+		.OperationMode   = LORA_MODE_POLLING,
 		.Bandwidth       = LORA_BW_125_KHZ,
 		.Frequency       = 433000000,
 		.SpreadingFactor = LORA_SF_7,
 		.CodingRate      = LORA_CR_4_5,
-		.Power           = LORA_POWER_BALANCE,
+		.Power           = LORA_POWER_MAX,
 		.RxCallback      = (void*)(0x00),
 		.TxCallback      = (void*)(0x00)
 
@@ -120,8 +120,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
   DRV_LoraInit(&Lora_Instance_0);
   DRV_LoraSwitchMode(&Lora_Instance_0, LORA_RECEIVE_CONTINUOUS_STATE);
-  StateMachine = RECEIVE;
-  NVIC_EnableIRQ(EXTI0_IRQn);
+//  StateMachine = RECEIVE;
+//  NVIC_EnableIRQ(EXTI0_IRQn);
   LORA_ReturnTypedef status  ;
   /* USER CODE END 2 */
 
@@ -133,14 +133,14 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 //	  MASTER
-//	  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) data_test, 50, 100);
-//	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50, 1000);
-//	  if(data_rev[0] == 'T' )
-//	  {
-//		  HAL_GPIO_TogglePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin);
-//		  data_rev[0] = 0 ;
-//	  }
-//	  HAL_Delay(100);
+	  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) data_test, 50, 100);
+	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50, 100);
+	  if(data_rev[0] == 'T' )
+	  {
+		  HAL_GPIO_TogglePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin);
+		  data_rev[0] = 0 ;
+	  }
+	  HAL_Delay(50);
 //    Slave
 //	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50, 100);
 //	  if(data_rev[0] == 'T')
@@ -149,13 +149,13 @@ int main(void)
 //		  HAL_GPIO_TogglePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin);
 //		  data_rev[0] = '\0';
 //	  }
-	  if(data_rev[0] == 'T')
-	  {
-		  HAL_GPIO_TogglePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin);
-		  status = DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50,10);
-		  DRV_LoraSwitchMode(&Lora_Instance_0, LORA_RECEIVE_CONTINUOUS_STATE);
-	  	  data_rev[0] = '\0';
-	  }
+//	  if(data_rev[0] == 'T')
+//	  {
+//		  HAL_GPIO_TogglePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin);
+//		  status = DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50,10);
+//		  DRV_LoraSwitchMode(&Lora_Instance_0, LORA_RECEIVE_CONTINUOUS_STATE);
+//	  	  data_rev[0] = '\0';
+//	  }
 //	  if ( StateMachine == CONFIRM )
 //	  {
 //		  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50,10);

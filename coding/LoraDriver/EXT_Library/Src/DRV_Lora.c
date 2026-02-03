@@ -346,7 +346,7 @@ static LORA_ReturnTypedef DRV_Lora_WriteRegister(LORA_HandleTypedef *LORA_Instan
     HAL_StatusTypeDef TransmitStatus = HAL_OK;
     LORA_ReturnTypedef  retVal = STD_E_OK ;
     uint8_t l_register = LORA_WRITE_REG(reg);
-    /* Pulll the Chip Select pin low */
+    /* Pull the Chip Select pin low */
     HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_RESET);
 
     /* Transmit register address which want to read from LORA on MOSI Line */
@@ -377,8 +377,8 @@ static LORA_ReturnTypedef DRV_Lora_ReadFifo(LORA_HandleTypedef *LORA_Instance, u
     HAL_StatusTypeDef TransmitStatus = HAL_OK;
     LORA_ReturnTypedef  retVal = STD_E_OK ;
     uint8_t l_register = LORA_READ_REG(REG_FIFO);
-    uint16_t l_counter = 0 ;
-    /* Pulll the Chip Select pin low */
+
+    /* Pull the Chip Select pin low */
     HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_RESET);
 
     /* Transmit register address which want to read from LORA on MOSI Line */
@@ -387,15 +387,11 @@ static LORA_ReturnTypedef DRV_Lora_ReadFifo(LORA_HandleTypedef *LORA_Instance, u
     /* Transmit data which want to write to LORA on MISO Line */
     if ( TransmitStatus == HAL_OK)
     {
-        for ( l_counter = 0 ; l_counter < length ; l_counter ++)
-        {
-            TransmitStatus = HAL_SPI_Receive(LORA_Instance->SPI_Instance,&data[l_counter],1,10);
-            if(TransmitStatus != HAL_OK)
-            {
-                l_counter = length;
-                retVal = STD_E_NOT_OK;
-            }
-        }
+		TransmitStatus = HAL_SPI_Receive(LORA_Instance->SPI_Instance,data,length,10);
+		if(TransmitStatus != HAL_OK)
+		{
+			retVal = STD_E_NOT_OK;
+		}
     }
     else
     {
@@ -413,8 +409,8 @@ static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, 
     HAL_StatusTypeDef TransmitStatus = HAL_OK;
     LORA_ReturnTypedef  retVal = STD_E_OK ;
     uint8_t l_register = LORA_WRITE_REG(REG_FIFO);
-    uint16_t l_counter = 0 ;
-    /* Pulll the Chip Select pin low */
+
+    /* Pull the Chip Select pin low */
     HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort,LORA_Instance->ChipSelectPin,GPIO_PIN_RESET);
 
     /* Transmit register address which want to read from LORA on MOSI Line */
@@ -423,15 +419,11 @@ static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, 
     /* Transmit data which want to write to LORA on MISO Line */
     if ( TransmitStatus == HAL_OK)
     {
-        for ( l_counter = 0 ; l_counter < length ; l_counter ++)
-        {
-            TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance,&data[l_counter],1,10);
-            if(TransmitStatus != HAL_OK)
-            {
-                l_counter = length;
-                retVal = STD_E_NOT_OK;
-            }
-        }
+		TransmitStatus = HAL_SPI_Transmit(LORA_Instance->SPI_Instance,data,length,10);
+		if(TransmitStatus != HAL_OK)
+		{
+			retVal = STD_E_NOT_OK;
+		}
     }
     else
     {
