@@ -63,6 +63,42 @@
 /*
  * Typedef and structure
  */
+typedef enum
+{
+    NRF24_MODE_POLLING,
+    NRF24_MODE_INTERRUPT
+} NRF24L01_OperationModeTypedef;
+typedef enum 
+{
+    NRF24_LOW_POWER,
+    NRF24_MEDIUM_POWER,
+    NRF24_MAX_POWER,
+    NRF24_ULTRA_POWER
+} NRF24L01_OutputPowerTypedef ; 
+
+typedef struct
+{
+    /* Hardware Interface */
+    SPI_HandleTypeDef*        SPI_Instance;      /**< SPI peripheral instance for communication */
+    uint16_t                  ChipSelectPin;     /**< NSS/CS pin number */
+    GPIO_TypeDef*             ChipSelectPort;    /**< NSS/CS GPIO port */
+    uint16_t                  InterruptPin;      /**< Hardware interrupt pin number */
+    GPIO_TypeDef*             InterruptPort;     /**< Hardware interrupt port  */
+    uint16_t                  ChipEnablePin;     /**< Chip Enable Activate RX or TX mode  */
+    GPIO_TypeDef*             ChipEnbalePort;    /**< Chip Enable Activate RX or TX mode  */
+    /* Operation Mode */
+    NRF24L01_OperationModeTypedef OperationMode;     /**< Polling or interrupt mode */
+    NRF24L01_OutputPowerTypedef   NRF24L01_OutputPower;      
+    /* NRF24 Configuration */
+    uint8_t                   FrequencyChannel; 
+    
+
+    
+    /* Callback Functions */
+    void                      (*RxCallback)(uint8_t* data, uint8_t size);  /**< Receive complete callback */
+    void                      (*TxCallback)(void);                         /**< Transmit complete callback */
+} NRF24L01_HandleTypedef;
+
 /*
  * Prototype function 
 */
