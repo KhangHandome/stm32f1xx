@@ -1,1 +1,13 @@
-../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:6:13:DRV_Nrf_ReadRegister	16	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:9:16:DRV_Nrf_ReadRegister	32	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:25:13:DRV_Nrf_WriteRegister	24	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:35:21:DRV_Nrf24l01Init	24	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:75:6:DRV_Nrf24l01Deinit	16	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:80:13:DRV_Nrf24L01ReadPayload	32	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:96:13:DRV_Nrf24L01WritePayload	32	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:114:8:DRV_Nrf24l01Receive	32	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:138:21:DRV_Nrf24l01Transmit	32	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:174:21:DRV_Nrf24l01SetChannel	16	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:179:21:DRV_Nrf24l01SetDataRate	24	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:200:21:DRV_Nrf24l01SetPALevel	24	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:213:21:DRV_Nrf24l01OpenWritingPipe	24	static
+../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c:231:21:DRV_Nrf24l01OpenReadingPipe	32	static

@@ -70,12 +70,16 @@ typedef enum
 } NRF24L01_OperationModeTypedef;
 typedef enum 
 {
-    NRF24_LOW_POWER,
-    NRF24_MEDIUM_POWER,
-    NRF24_MAX_POWER,
-    NRF24_ULTRA_POWER
+    NRF24_LOW_POWER = 0 ,
+    NRF24_MEDIUM_POWER = 1 ,
+    NRF24_MAX_POWER = 2,
+    NRF24_ULTRA_POWER = 3 
 } NRF24L01_OutputPowerTypedef ; 
-
+typedef enum
+{
+    NRF24L01_1MBPS,
+    NRF24L01_2MBPS
+} NRF24L01_AirDataDateTypedef;
 typedef struct
 {
     /* Hardware Interface */
@@ -85,31 +89,43 @@ typedef struct
     uint16_t                  InterruptPin;      /**< Hardware interrupt pin number */
     GPIO_TypeDef*             InterruptPort;     /**< Hardware interrupt port  */
     uint16_t                  ChipEnablePin;     /**< Chip Enable Activate RX or TX mode  */
-    GPIO_TypeDef*             ChipEnbalePort;    /**< Chip Enable Activate RX or TX mode  */
+    GPIO_TypeDef*             ChipEnablePort;    /**< Chip Enable Activate RX or TX mode  */
     /* Operation Mode */
     NRF24L01_OperationModeTypedef OperationMode;     /**< Polling or interrupt mode */
-    NRF24L01_OutputPowerTypedef   NRF24L01_OutputPower;      
-    /* NRF24 Configuration */
-    uint8_t                   FrequencyChannel; 
-    
+    NRF24L01_OutputPowerTypedef   NRF24L01_OutputPower;     
+    NRF24L01_AirDataDateTypedef   NRF24L01_AirDataDate;  
 
-    
+    /* NRF24 Configuration */
+	uint32_t FrequencyChannel;
+	uint8_t  AutoRetransmitCount; // 0-15
+	uint8_t  AutoRetransmitDelay; // 0-15 (nhân 250us)
+
+	/* Addresses for 6 Pipes (Mỗi địa chỉ 5 byte) */
+	uint8_t  RxAddressP0[5];
+	uint8_t  RxAddressP1[5];
+	uint8_t  RxAddressP2_5[4]; // Chỉ cần 1 byte cuối cho P2, P3, P4, P5
+	uint8_t  TxAddress[5];
+
     /* Callback Functions */
     void                      (*RxCallback)(uint8_t* data, uint8_t size);  /**< Receive complete callback */
     void                      (*TxCallback)(void);                         /**< Transmit complete callback */
 } NRF24L01_HandleTypedef;
-
+typedef enum 
+{
+    STD_E_OK,
+    STD_E_NOT_OK,
+} NRF24L01_ReturnType;
 /*
  * Prototype function 
 */
-void DRV_Nrf24l01Init();
-void DRV_Nrf24l01Deinit();
-void DRV_Nrf24l01Receive();
-void DRV_Nrf24l01Transmit();
-void DRV_Nrf24l01SetChannel();
-void DRV_Nrf24l01SetDataRate();
-void DRV_Nrf24l01SetPALevel();
-void DRV_Nrf24l01OpenWritingPipe();
-void DRV_Nrf24l01OpenReadingPiple();
-void DRV_Nrf24l01SwitchMode();
+NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance);
+void DRV_Nrf24l01Deinit(NRF24L01_HandleTypedef* NRF24L01Instance);
+int8_t DRV_Nrf24l01Receive(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *destinationPtr, uint8_t length);
+NRF24L01_ReturnType DRV_Nrf24l01Transmit(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *targetAddr, uint8_t *sourcePtr, uint8_t length);
+NRF24L01_ReturnType DRV_Nrf24l01SwitchMode(NRF24L01_HandleTypedef* NRF24L01Instance);
+NRF24L01_ReturnType DRV_Nrf24l01SetChannel(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t channel);
+NRF24L01_ReturnType DRV_Nrf24l01SetDataRate(NRF24L01_HandleTypedef* NRF24L01Instance, NRF24L01_AirDataDateTypedef speed);
+NRF24L01_ReturnType DRV_Nrf24l01SetPALevel(NRF24L01_HandleTypedef* NRF24L01Instance, NRF24L01_OutputPowerTypedef level);
+NRF24L01_ReturnType DRV_Nrf24l01OpenWritingPipe(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *address);
+NRF24L01_ReturnType DRV_Nrf24l01OpenReadingPipe(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t pipeNum, uint8_t *address);
 #endif /* _DRV_NRF24L01_H_ */

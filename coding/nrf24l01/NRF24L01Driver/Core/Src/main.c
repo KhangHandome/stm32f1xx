@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "DRV_NRF24L01.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -33,7 +33,16 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+/* USER CODE BEGIN PD */
+/* Comment dòng này nếu nạp cho board NHẬN, mở comment nếu nạp cho board PHÁT */
+//#define IS_TRANSMITTER_NODE
+/* USER CODE END PD */
 
+/* USER CODE BEGIN PV */
+uint8_t masterAddress[5] = {0x11, 0x22, 0x33, 0x44, 0x55};
+uint8_t dummyPayload[32];
+uint32_t txCounter = 0;
+/* USER CODE END PV */
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -55,7 +64,29 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* USER CODE BEGIN 0 */
+NRF24L01_HandleTypedef Instance0 =
+{
+    .SPI_Instance = &hspi1,
+    .ChipSelectPin = CHIP_Select_Pin,
+    .ChipSelectPort = CHIP_Select_GPIO_Port,
+    .InterruptPin = CHIP_Irq_Pin,
+    .InterruptPort = CHIP_Irq_GPIO_Port,
+    .ChipEnablePin = CHIP_Enable_Pin,
+    .ChipEnablePort  = CHIP_Enable_GPIO_Port,
+    .OperationMode = NRF24_MODE_POLLING,
+    .NRF24L01_OutputPower = NRF24_MEDIUM_POWER,
+    .NRF24L01_AirDataDate = NRF24L01_1MBPS, // Thêm dòng này
+    .FrequencyChannel     = 120,
+    .AutoRetransmitCount = 10,
+    .AutoRetransmitDelay = 10,
 
+    // Gán địa chỉ mặc định
+    .RxAddressP0 = {0x11, 0x22, 0x33, 0x44, 0x55},
+    .RxAddressP1 = {0x11, 0x22, 0x33, 0x44, 0x55},
+    .TxAddress   = {0x11, 0x22, 0x33, 0x44, 0x55}
+};
+/* USER CODE END 0 */
 /* USER CODE END 0 */
 
 /**
@@ -89,7 +120,10 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-
+  if(DRV_Nrf24l01Init(&Instance0) != STD_E_OK)
+  {
+	Error_Handler(); // Nếu Init lỗi sẽ kẹt ở đây
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -99,6 +133,33 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+#ifdef IS_TRANSMITTER_NODE
+      /* --- KỊCH BẢN PHÁT (TX) --- */
+      // Tạo dữ liệu dummy
+      for(uint8_t i=0; i<32; i++) dummyPayload[i] = (uint8_t)(txCounter + i);
+
+      // Gửi dữ liệu đi
+      if(DRV_Nrf24l01Transmit(&Instance0, masterAddress, dummyPayload, 32) == STD_E_OK)
+      {
+          // Truyền thành công - Có thể nháy LED ở đây để quan sát
+          txCounter++;
+      }
+      HAL_Delay(500); // Gửi mỗi 0.5 giây
+
+#else
+      /* --- KỊCH BẢN NHẬN (RX) --- */
+      // Đảm bảo chân CE luôn cao để lắng nghe
+      HAL_GPIO_WritePin(Instance0.ChipEnablePort, Instance0.ChipEnablePin, GPIO_PIN_SET);
+
+      int8_t pipeIdx = DRV_Nrf24l01Receive(&Instance0, dummyPayload, 32);
+
+      if(pipeIdx >= 0)
+      {
+          // Đã nhận được dữ liệu từ ống pipeIdx
+          // Bạn có thể đặt breakpoint tại đây để kiểm tra mảng dummyPayload
+          // dummyPayload[0] sẽ tăng dần theo mỗi lần nhận thành công
+      }
+#endif
   }
   /* USER CODE END 3 */
 }
