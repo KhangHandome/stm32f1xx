@@ -35,14 +35,7 @@
 /* USER CODE BEGIN PD */
 /* USER CODE BEGIN PD */
 /* Comment dòng này nếu nạp cho board NHẬN, mở comment nếu nạp cho board PHÁT */
-//#define IS_TRANSMITTER_NODE
-/* USER CODE END PD */
-
-/* USER CODE BEGIN PV */
-uint8_t masterAddress[5] = {0x11, 0x22, 0x33, 0x44, 0x55};
-uint8_t dummyPayload[32];
-uint32_t txCounter = 0;
-/* USER CODE END PV */
+#define IS_TRANSMITTER_NODE
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -53,7 +46,11 @@ uint32_t txCounter = 0;
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint8_t masterAddress0[5] = {0x11, 0x22, 0x33, 0x44, 0x55};
+uint8_t masterAddress1[5] = {0x12, 0x13, 0x14, 0x15, 0x16};
+uint8_t masterAddress2[4] = {0x15, 0x16, 0x17, 0x18};
+uint8_t dummyPayload[32];
+uint32_t txCounter = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -76,17 +73,17 @@ NRF24L01_HandleTypedef Instance0 =
     .ChipEnablePort  = CHIP_Enable_GPIO_Port,
     .OperationMode = NRF24_MODE_POLLING,
     .NRF24L01_OutputPower = NRF24_MEDIUM_POWER,
-    .NRF24L01_AirDataDate = NRF24L01_1MBPS, // Thêm dòng này
+    .NRF24L01_AirDataDate = NRF24L01_1MBPS,
     .FrequencyChannel     = 120,
     .AutoRetransmitCount = 10,
     .AutoRetransmitDelay = 10,
 
     // Gán địa chỉ mặc định
     .RxAddressP0 = {0x11, 0x22, 0x33, 0x44, 0x55},
-    .RxAddressP1 = {0x11, 0x22, 0x33, 0x44, 0x55},
+    .RxAddressP1 = {0x12, 0x13, 0x14, 0x15, 0x16},
+	.RxAddressP2_5 = {0x15,0x16,0x17,0x18},
     .TxAddress   = {0x11, 0x22, 0x33, 0x44, 0x55}
 };
-/* USER CODE END 0 */
 /* USER CODE END 0 */
 
 /**
@@ -134,16 +131,19 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 #ifdef IS_TRANSMITTER_NODE
+	  uint8_t status = 0 ;
       /* --- KỊCH BẢN PHÁT (TX) --- */
-      // Tạo dữ liệu dummy
-      for(uint8_t i=0; i<32; i++) dummyPayload[i] = (uint8_t)(txCounter + i);
+	  status = DRV_Nrf24l01Transmit(&Instance0, masterAddress0, (uint8_t*)"FPT SOFT WARE ", 32);
+	  if ( status == STD_E_OK)
+	  {
+		  DRV_Nrf24l01Receive(&Instance0, dummyPayload, 32);
+	      if(dummyPayload[0] == 'K')
+	      {
+	    	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	    	  dummyPayload[0] = '\0';
 
-      // Gửi dữ liệu đi
-      if(DRV_Nrf24l01Transmit(&Instance0, masterAddress, dummyPayload, 32) == STD_E_OK)
-      {
-          // Truyền thành công - Có thể nháy LED ở đây để quan sát
-          txCounter++;
-      }
+	      }
+	  }
       HAL_Delay(500); // Gửi mỗi 0.5 giây
 
 #else
@@ -151,13 +151,13 @@ int main(void)
       // Đảm bảo chân CE luôn cao để lắng nghe
       HAL_GPIO_WritePin(Instance0.ChipEnablePort, Instance0.ChipEnablePin, GPIO_PIN_SET);
 
-      int8_t pipeIdx = DRV_Nrf24l01Receive(&Instance0, dummyPayload, 32);
+      DRV_Nrf24l01Receive(&Instance0, dummyPayload, 32);
 
-      if(pipeIdx >= 0)
+      if(dummyPayload[0] == 'F')
       {
-          // Đã nhận được dữ liệu từ ống pipeIdx
-          // Bạn có thể đặt breakpoint tại đây để kiểm tra mảng dummyPayload
-          // dummyPayload[0] sẽ tăng dần theo mỗi lần nhận thành công
+    	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    	  dummyPayload[0] = '\0';
+    	  DRV_Nrf24l01Transmit(&Instance0, masterAddress0, (uint8_t*)"Khang DZ", 32);
       }
 #endif
   }
