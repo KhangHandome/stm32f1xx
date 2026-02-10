@@ -35,7 +35,7 @@
 /* USER CODE BEGIN PD */
 /* USER CODE BEGIN PD */
 /* Comment dòng này nếu nạp cho board NHẬN, mở comment nếu nạp cho board PHÁT */
-#define IS_TRANSMITTER_NODE
+//#define IS_TRANSMITTER_NODE
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -133,7 +133,7 @@ int main(void)
 #ifdef IS_TRANSMITTER_NODE
 	  uint8_t status = 0 ;
       /* --- KỊCH BẢN PHÁT (TX) --- */
-	  status = DRV_Nrf24l01Transmit(&Instance0, masterAddress0, (uint8_t*)"FPT SOFT WARE ", 32);
+	  status = DRV_Nrf24l01Transmit(&Instance0, masterAddress0, (uint8_t*)"FPT SOFT WARE ", 15);
 	  if ( status == STD_E_OK)
 	  {
 		  DRV_Nrf24l01Receive(&Instance0, dummyPayload, 32);

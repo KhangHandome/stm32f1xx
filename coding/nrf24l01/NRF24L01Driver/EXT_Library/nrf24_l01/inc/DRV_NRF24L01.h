@@ -17,6 +17,7 @@
 #define R_RX_PL_WID   0x60  // Đọc độ dài payload của gói tin vừa nhận
 #define W_ACK_PAYLOAD 0xA8  // Ghi ACK payload (kèm 3 bit pipe ID)
 #define W_TX_PAYLOAD_NOACK 0xB0 // Ghi TX payload nhưng không yêu cầu ACK
+#define ACTIVATE      0x50
 #define NOP           0xFF  // Không thực hiện lệnh (dùng để đọc trạng thái STATUS)
 
 /* --- NRF24L01 REGISTER MAP --- 
