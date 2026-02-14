@@ -51,6 +51,7 @@ uint8_t masterAddress1[5] = {0x12, 0x13, 0x14, 0x15, 0x16};
 uint8_t masterAddress2[4] = {0x15, 0x16, 0x17, 0x18};
 uint8_t dummyPayload[32];
 uint32_t txCounter = 0;
+volatile uint8_t flag = 0 ;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,7 +78,7 @@ NRF24L01_HandleTypedef Instance0 =
     .FrequencyChannel     = 120,
     .AutoRetransmitCount = 10,
     .AutoRetransmitDelay = 10,
-
+	.State = NRF24_UNINIT,
     // Gán địa chỉ mặc định
     .RxAddressP0 = {0x11, 0x22, 0x33, 0x44, 0x55},
     .RxAddressP1 = {0x12, 0x13, 0x14, 0x15, 0x16},
@@ -121,6 +122,11 @@ int main(void)
   {
 	Error_Handler(); // Nếu Init lỗi sẽ kẹt ở đây
   }
+  DRV_Nrf24l01SwitchMode(&Instance0,1);
+#ifndef IS_TRANSMITTER_NODE
+
+  NVIC_EnableIRQ(EXTI4_IRQn);
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -144,20 +150,25 @@ int main(void)
 
 	      }
 	  }
-      HAL_Delay(500); // Gửi mỗi 0.5 giây
+      HAL_Delay(100); // Gửi mỗi 0.5 giây
 
 #else
       /* --- KỊCH BẢN NHẬN (RX) --- */
       // Đảm bảo chân CE luôn cao để lắng nghe
       HAL_GPIO_WritePin(Instance0.ChipEnablePort, Instance0.ChipEnablePin, GPIO_PIN_SET);
-
-      DRV_Nrf24l01Receive(&Instance0, dummyPayload, 32);
-
+//
+//      DRV_Nrf24l01Receive(&Instance0, dummyPayload, 32);
+      if ( flag == 1 )
+      {
+    	  DRV_Nrf24l01ReceiveIT(&Instance0, dummyPayload);
+    	  flag = 0 ;
+      }
       if(dummyPayload[0] == 'F')
       {
     	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     	  dummyPayload[0] = '\0';
     	  DRV_Nrf24l01Transmit(&Instance0, masterAddress0, (uint8_t*)"Khang DZ", 32);
+    	  DRV_Nrf24l01SwitchMode(&Instance0,1);
       }
 #endif
   }
@@ -201,7 +212,11 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void EXTI4_IRQHandler()
+{
+	__HAL_GPIO_EXTI_CLEAR_IT(CHIP_Irq_Pin);
+	flag = 1 ;
+}
 /* USER CODE END 4 */
 
 /**

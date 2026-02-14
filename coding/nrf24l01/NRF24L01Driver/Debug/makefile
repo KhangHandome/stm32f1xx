@@ -61,8 +61,8 @@ all: main-build
 main-build: NRF24L01Driver.elf secondary-outputs
 
 # Tool invocations
-NRF24L01Driver.elf NRF24L01Driver.map: $(OBJS) $(USER_OBJS) C:\Users\maith\Documents\GitWork\stm32f1xx\coding\nrf24l01\NRF24L01Driver\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "NRF24L01Driver.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\maith\Documents\GitWork\stm32f1xx\coding\nrf24l01\NRF24L01Driver\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="NRF24L01Driver.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+NRF24L01Driver.elf NRF24L01Driver.map: $(OBJS) $(USER_OBJS) /home/khang/Documents/stm32f1xx/coding/nrf24l01/NRF24L01Driver/STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "NRF24L01Driver.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/home/khang/Documents/stm32f1xx/coding/nrf24l01/NRF24L01Driver/STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="NRF24L01Driver.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

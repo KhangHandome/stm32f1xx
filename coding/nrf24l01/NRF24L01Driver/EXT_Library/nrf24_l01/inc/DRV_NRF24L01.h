@@ -81,6 +81,13 @@ typedef enum
     NRF24L01_1MBPS,
     NRF24L01_2MBPS
 } NRF24L01_AirDataDateTypedef;
+typedef enum
+{
+	NRF24_UNINIT,
+	NRF24_INIT,
+	NRF24_IDEL,
+	NRF24_BUSY,
+} NRF24L01_StateTypedef;
 typedef struct
 {
     /* Hardware Interface */
@@ -106,7 +113,7 @@ typedef struct
 	uint8_t  RxAddressP1[5];
 	uint8_t  RxAddressP2_5[4]; // Chỉ cần 1 byte cuối cho P2, P3, P4, P5
 	uint8_t  TxAddress[5];
-
+	NRF24L01_StateTypedef State;
     /* Callback Functions */
     void                      (*RxCallback)(uint8_t* data, uint8_t size);  /**< Receive complete callback */
     void                      (*TxCallback)(void);                         /**< Transmit complete callback */
@@ -122,8 +129,9 @@ typedef enum
 NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance);
 void DRV_Nrf24l01Deinit(NRF24L01_HandleTypedef* NRF24L01Instance);
 int8_t DRV_Nrf24l01Receive(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *destinationPtr, uint8_t length);
+void DRV_Nrf24l01ReceiveIT(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *destinationPtr);
 NRF24L01_ReturnType DRV_Nrf24l01Transmit(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *targetAddr, uint8_t *sourcePtr, uint8_t length);
-NRF24L01_ReturnType DRV_Nrf24l01SwitchMode(NRF24L01_HandleTypedef* NRF24L01Instance);
+NRF24L01_ReturnType DRV_Nrf24l01SwitchMode(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t mode);
 NRF24L01_ReturnType DRV_Nrf24l01SetChannel(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t channel);
 NRF24L01_ReturnType DRV_Nrf24l01SetDataRate(NRF24L01_HandleTypedef* NRF24L01Instance, NRF24L01_AirDataDateTypedef speed);
 NRF24L01_ReturnType DRV_Nrf24l01SetPALevel(NRF24L01_HandleTypedef* NRF24L01Instance, NRF24L01_OutputPowerTypedef level);

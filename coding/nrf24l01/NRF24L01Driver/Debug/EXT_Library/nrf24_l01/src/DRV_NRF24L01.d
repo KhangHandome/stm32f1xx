@@ -1,6 +1,6 @@
 EXT_Library/nrf24_l01/src/DRV_NRF24L01.o: \
  ../EXT_Library/nrf24_l01/src/DRV_NRF24L01.c \
- C:/Users/maith/Documents/GitWork/stm32f1xx/coding/nrf24l01/NRF24L01Driver/EXT_Library/nrf24_l01/inc/DRV_NRF24L01.h \
+ /home/khang/Documents/stm32f1xx/coding/nrf24l01/NRF24L01Driver/EXT_Library/nrf24_l01/inc/DRV_NRF24L01.h \
  ../Core/Inc/gpio.h ../Core/Inc/main.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
@@ -26,7 +26,7 @@ EXT_Library/nrf24_l01/src/DRV_NRF24L01.o: \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h \
  ../Core/Inc/spi.h
-C:/Users/maith/Documents/GitWork/stm32f1xx/coding/nrf24l01/NRF24L01Driver/EXT_Library/nrf24_l01/inc/DRV_NRF24L01.h:
+/home/khang/Documents/stm32f1xx/coding/nrf24l01/NRF24L01Driver/EXT_Library/nrf24_l01/inc/DRV_NRF24L01.h:
 ../Core/Inc/gpio.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
