@@ -168,6 +168,7 @@ int main(void)
       DRV_Nrf24l01Receive(&Instance0,&pipeID, dummyPayload, 10 );
       if(dummyPayload[0] == 'F')
       {
+
     	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     	  dummyPayload[0] = '\0';
       }

@@ -108,7 +108,30 @@ void DRV_Nrf24l01Deinit(NRF24L01_HandleTypedef* NRF24L01Instance)
     /* Reset configuration to power-down state */
     DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, 0x00);
 }
+/*
+ * @brief : This function used to get status of NRF24l01
+ * @param : [in] : The instance of NRF24L01
+ * @return : The status of NRF24L01
+ */
+uint8_t DRV_Nrf24l01GetStatus(NRF24L01_HandleTypedef* NRF24L01Instance)
+{
+	uint8_t retval = 0 ;
+	uint8_t cmd    = 0xFFU;
+    /* Start SPI transmission */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
 
+    /* Send address and read status simultaneously, then read data */
+    HAL_SPI_TransmitReceive(NRF24L01Instance->SPI_Instance, &cmd, &retval, 1, 10);
+
+    /* End SPI transmission */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+
+	return retval;
+}
+void DRV_Nrf24l01ClearIRQ(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t InterruptID)
+{
+	DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << InterruptID));
+}
 NRF24L01_ReturnType DRV_Nrf24l01SwitchMode(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t mode)
 {
     uint8_t config = 0 ;
@@ -193,6 +216,7 @@ NRF24L01_ReturnType DRV_Nrf24l01Receive(NRF24L01_HandleTypedef* NRF24L01Instance
     {
         status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
     }
+    DRV_Nrf24l01GetStatus(NRF24L01Instance);
 
     /* 4. If data received (RX_DR = 1) */
     if (status & (1 << 6)) {
@@ -257,25 +281,29 @@ NRF24L01_ReturnType DRV_Nrf24l01Transmit(NRF24L01_HandleTypedef* NRF24L01Instanc
     HAL_Delay(1); /* Pulse must be > 10us */
     HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
 
-    /* Step 4: Wait for TX_DS (Success) or MAX_RT (Failed) */
-    do
+    if ( FALSE == NRF24L01Instance->InterruptMode)
     {
-        status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
-        timeout--;
-    } while (!(status & ((1 << 5) | (1 << 4))) && (timeout > 0));
+        /* Step 4: Wait for TX_DS (Success) or MAX_RT (Failed) */
+        do
+        {
+            status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
+            timeout--;
+        } while (!(status & ((1 << 5) | (1 << 4))) && (timeout > 0));
 
-    /* Step 5: Handle transmission result */
-    if ((status & (1 << 4)) || (timeout == 0)) /* MAX_RT error or SPI Timeout */
-    {
-        DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 4)); /* Clear MAX_RT flag */
+        /* Step 5: Handle transmission result */
+        if ((status & (1 << 4)) || (timeout == 0)) /* MAX_RT error or SPI Timeout */
+        {
+            DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 4)); /* Clear MAX_RT flag */
 
-        cmd = FLUSH_TX;
-        HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 0);
-        HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-        HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 1);
+            cmd = FLUSH_TX;
+            HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 0);
+            HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+            HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 1);
 
-        retval =  STD_E_NOT_OK;
+            retval =  STD_E_NOT_OK;
+        }
     }
+
     return retval;
 }
 
