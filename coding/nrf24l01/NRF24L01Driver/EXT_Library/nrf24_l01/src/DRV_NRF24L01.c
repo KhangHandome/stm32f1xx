@@ -1,379 +1,336 @@
 #include "DRV_NRF24L01.h"
 #include "stdint.h"
+
+/*
+ * Bitmask Definitions
+ */
 #define READ_REGISTER(x) ((x) & 0x1F)
 #define WRITE_REGISTER(x) ((x) | 0x20 )
+
+/*
+ * Local prototype functions (Private helpers)
+ */
 static uint8_t DRV_Nrf_ReadRegister(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t reg);
 static void DRV_Nrf_WriteRegister(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t reg, uint8_t data);
 static void DRV_Nrf24L01ReadPayload(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *data, uint8_t length);
 static void DRV_Nrf24L01WritePayload(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *data, uint8_t length);
-static uint8_t DRV_Nrf_ReadRegister(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t reg)
-{
-    uint8_t cmd = READ_REGISTER(reg);
-    uint8_t status = 0;
-    uint8_t data = 0;
 
-    /* Down CS Pin to low lever to start a new transmision */
-    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
-
-    /* Select address to read and read status return */
-    HAL_SPI_TransmitReceive(NRF24L01Instance->SPI_Instance, &cmd, &status, 1, 10);
-    HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &data, 1, 10);
-    /* Up CS Pin to high lever to end current transmision */
-    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
-    return data;
-}
-static void DRV_Nrf_WriteRegister(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t reg, uint8_t data)
-{
-	uint8_t l_reg = WRITE_REGISTER(reg);
-	/* Set CS Pin to low level to start a new transmission */
-	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort,NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
-
-	HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &l_reg , 1, 10);
-	HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &data, 1, 10);
-
-	/* Set CS Pin to high level to stop transmit data */
-	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort,NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
-}
+/**
+ * @brief Initializes the NRF24L01 module with provided configuration
+ */
 NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance)
 {
-	uint8_t retval = 0 ;
-	uint8_t counter = 0;
-	uint8_t cmd    = 0 ;
-    HAL_Delay(5); // Chờ chip ổn định nguồn
+    uint8_t retval = 0;
+    uint8_t counter = 0;
+    uint8_t cmd    = 0;
 
-    // 1. Cơ bản: Power Up và bật CRC (2 bytes)
-    DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, (1 << EN_CRC) | (1 << CRCO) | (1 << PWR_UP) | (1 << 5) );
+    HAL_Delay(5); /* Wait for Power-On Reset (POR) stability */
+
+    /* Power up and enable CRC (2-byte CRC) */
+    DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, (1 << EN_CRC) | (1 << CRCO) | (1 << PWR_UP) );
     cmd = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
-    /* Enable active mode */
-	/* 1. Kéo CSN xuống thấp để bắt đầu phiên SPI */
-	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
-	/* 2. Gửi lệnh enable activate  */
-	cmd = ACTIVATE; // Lệnh R_RX_PAYLOAD
-	HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-	cmd = 0x73 ; // Lệnh R_RX_PAYLOAD
-	HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
 
-	/* 4. Kéo CSN lên cao để kết thúc */
-	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+    /* --- Activation Sequence --- */
+    /* 1. Pull CSN Low to start SPI session */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
 
-	/* Enable payload length */
-	DRV_Nrf_WriteRegister(NRF24L01Instance, FEATURE, (1 << 2 ));
-	DRV_Nrf_WriteRegister(NRF24L01Instance, DYNPD, 0x3F);
+    /* 2. Send ACTIVATE command followed by 0x73 to enable special features */
+    cmd = ACTIVATE;
+    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+    cmd = 0x73;
+    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
 
+    /* 3. Pull CSN High to terminate session */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
 
-    // 2. Bật Auto-ACK cho tất cả Pipes (P0-P5)
+    /* Setting up Payload Features */
+    cmd = 0x00;
+    if (NRF24L01Instance->DynamicPayloadEnable == TRUE)
+    {
+        cmd |= 1 << 2; /* EN_DPL bit */
+        DRV_Nrf_WriteRegister(NRF24L01Instance, DYNPD, 0x3F); /* Enable DPL on all pipes */
+    }
+    if (NRF24L01Instance->PayloadWithAckEnable == TRUE)
+    {
+        cmd |= 1 << 1; /* EN_ACK_PAY bit */
+    }
+    /* Write enabled features to FEATURE register */
+    DRV_Nrf_WriteRegister(NRF24L01Instance, FEATURE, cmd);
+
+    /* 4. Enable Auto-ACK for all Pipes (P0-P5) */
     DRV_Nrf_WriteRegister(NRF24L01Instance, EN_AA, 0x3F);
 
-    // 3. Bật tất cả các Pipes để sẵn sàng nhận
+    /* 5. Enable all RX Addresses to be ready for reception */
     DRV_Nrf_WriteRegister(NRF24L01Instance, EN_RXADDR, 0x3F);
 
-    // 4. Cấu hình cho việc tự động gửi lại dữ liệu
+    /* 6. Configure Automatic Retransmission (Delay and Retry Count) */
     DRV_Nrf_WriteRegister(NRF24L01Instance, SETUP_RETR, (NRF24L01Instance->AutoRetransmitDelay << 4) | (NRF24L01Instance->AutoRetransmitCount));
 
-    // 5. Cấu hình tần số
+    /* 7. Set RF Frequency Channel */
     DRV_Nrf_WriteRegister(NRF24L01Instance, RF_CH, NRF24L01Instance->FrequencyChannel);
 
-    // 6. Setup speed
+    /* 8. Setup Data Rate and Power Level */
     DRV_Nrf24l01SetDataRate(NRF24L01Instance, NRF24L01Instance->NRF24L01_AirDataDate);
     DRV_Nrf24l01SetPALevel(NRF24L01Instance, NRF24L01Instance->NRF24L01_OutputPower);
     retval = DRV_Nrf_ReadRegister(NRF24L01Instance, RF_CH);
 
-    // 7. Nạp địa chỉ mặc định cho các Pipes và đặt Payload Width = 32
-    DRV_Nrf24l01OpenWritingPipe(NRF24L01Instance, NRF24L01Instance->TxAddress);
+    /* 9. Load default addresses for Pipes and set Payload Width = 32 */
     DRV_Nrf24l01OpenReadingPipe(NRF24L01Instance, 0, NRF24L01Instance->RxAddressP0);
     DRV_Nrf24l01OpenReadingPipe(NRF24L01Instance, 1, NRF24L01Instance->RxAddressP1);
 
-    /* Địa chỉ cho pipe từ 2 tới 5 chỉ cần 1 byte */
+    /* Addresses for Pipes 2 to 5 only require 1 LSB byte */
     for(counter = 2; counter <= 5; counter++) {
         DRV_Nrf24l01OpenReadingPipe(NRF24L01Instance, counter, &NRF24L01Instance->RxAddressP2_5[counter-2]);
     }
+
+    /* Flush TX FIFO */
     cmd = FLUSH_TX;
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 0);
     HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 1);
 
+    /* Flush RX FIFO */
     cmd = FLUSH_RX;
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 0);
     HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 1);
 
-    // Xóa cờ trạng thái rác nếu có
+    /* Clear status flags (RX_DR, TX_DS, MAX_RT) */
     DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, 0x70);
-    NRF24L01Instance->State = NRF24_INIT;
-    NRF24L01Instance->State = NRF24_IDEL;
 
-    /* Advoid compiler warning */
+    /* Avoid compiler warning for unused variable */
     (void) retval;
     return STD_E_OK;
 }
+
 void DRV_Nrf24l01Deinit(NRF24L01_HandleTypedef* NRF24L01Instance)
 {
-	/* Reset all state */
-	DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, 0x00);
+    /* Reset configuration to power-down state */
+    DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, 0x00);
 }
-/*
- * @brief : This function use to read payload from rx_buffer
- */
-static void DRV_Nrf24L01ReadPayload(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *data, uint8_t length)
-{
-	uint8_t cmd = R_RX_PAYLOAD; // Lệnh R_RX_PAYLOAD
 
-	/* 1. Kéo CSN xuống thấp để bắt đầu phiên SPI */
-	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
-
-	/* 2. Gửi lệnh đọc Payload */
-	HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-
-	/* 3. Nhận dữ liệu (độ dài 'length' byte) từ module về mảng 'data' */
-	HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, data, length, 100);
-
-	/* 4. Kéo CSN lên cao để kết thúc */
-	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
-}
-/*
- * @brief : This function use to write payload from rx_buffer
- */
-static void DRV_Nrf24L01WritePayload(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *data, uint8_t length )
-{
-	uint8_t cmd = W_TX_PAYLOAD; // Lệnh W_TX_PAYLOAD
-
-	/* 1. Kéo CSN xuống thấp */
-	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
-
-	/* 2. Gửi lệnh ghi Payload */
-	HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-
-	/* 3. Truyền mảng 'data' vào module */
-	HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, data, length, 100);
-
-	/* 4. Kéo CSN lên cao */
-	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
-
-	/* Lưu ý: Sau khi gọi hàm này, bạn cần kích chân CE lên HIGH ít nhất 10us để chip bắt đầu phát */
-}
 NRF24L01_ReturnType DRV_Nrf24l01SwitchMode(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t mode)
 {
-	uint8_t config = 0 ;
-	NRF24L01_ReturnType retval = 0 ;
-	if ( mode == 1)
-	{
-	    // 1. Chuyển sang chế độ RX (PRIM_RX = 1)
-	    config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
-	    DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config | (1 << 0) | (1 << 5 )); // Bit 0 là PRIM_RX
-	    config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
-	    // 2. Kích hoạt CE để bắt đầu nghe
-	    HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_SET);
-	    retval = STD_E_OK;
-	}
-	else
-	{
-	    // 1. Chuyển sang chế độ TX (PRIM_RX = 0)
-	    config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
-	    DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config | (1 << 0) | (1 << 5 )); // Bit 0 là PRIM_RX
-	    config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
-	    // 2. Kích hoạt CE để bắt đầu nghe
-	    HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_SET);
-	}
-	return retval;
-}
-int8_t DRV_Nrf24l01Receive(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *destinationPtr, uint8_t length)
-{
-    uint8_t config = 0;
-    uint8_t status = 0;
-    uint8_t fifo_status = 0;
-    uint8_t pipeId = -1;
-    uint8_t cmd    = 0 ;
-    uint32_t timeoutCount = 1000; // Tăng giá trị này tùy theo tốc độ clock của MCU
-    NRF24L01Instance->State = NRF24_BUSY;
-    // 1. Chuyển sang chế độ RX (PRIM_RX = 1)
-    config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
-    DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config | (1 << 0)); // Bit 0 là PRIM_RX
+    uint8_t config = 0 ;
+    NRF24L01_ReturnType retval = STD_E_OK ;
+    if ( mode ==  NRF24_RECEIVE_MODE)
+    {
+        /* Switch to receive mode by setting PRIM_RX bit */
+        config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
+        DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config | (1 << 0));
 
-    // 2. Kích hoạt CE để bắt đầu nghe
+        /* Enable CE Pin to enter RX mode */
+        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_SET);
+    }
+    else if ( mode == NRF24_TRANSMIT_MODE)
+    {
+        /* Switch to transmit mode by clearing PRIM_RX bit */
+        config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
+        DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config & (~(1 << 0)));
+
+        /* CE Pin should be handled during the actual transmit pulse */
+        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
+    }
+    else
+    {
+        retval = STD_E_NOT_OK;
+    }
+    return retval;
+}
+
+void DRV_Nrf24l01WritePayloadWithAck(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t pipeID, uint8_t *sourcePtr)
+{
+    uint8_t cmd = 0 ;
+    /* Move to Standby-I mode */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
+
+    /* Clear data in TX FIFO */
+    cmd = FLUSH_TX;
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10 );
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+
+    /* 1. Pull CSN low to start SPI session */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+
+    /* 2. Send Write Payload with ACK command */
+    cmd = W_ACK_PAYLOAD | pipeID ;
+    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, sourcePtr, LENGTH, 10);
+
+    /* 3. Pull CSN High and stay in Standby */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+}
+
+NRF24L01_ReturnType DRV_Nrf24l01Receive(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t* pipeID, uint8_t *destinationPtr, uint32_t timeout)
+{
+    uint8_t config      = 0;
+    uint8_t status      = 0;
+    uint8_t fifo_status = 0;
+    uint8_t cmd         = 0 ;
+    uint32_t timeoutCount = timeout;
+    NRF24L01_ReturnType retval = STD_E_OK;
+    uint8_t length = 0;
+
+    NRF24L01Instance->State = NRF24_BUSY;
+
+    /* 1. Switch to RX mode (PRIM_RX = 1) */
+    config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
+    DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config | (1 << 0));
+
+    /* 2. Activate CE to start listening */
     HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_SET);
 
-	/* 1. Kéo CSN xuống thấp để bắt đầu phiên SPI */
-	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
-	/* 2. Gửi lệnh ghi Payload with ACK */
-	cmd = W_ACK_PAYLOAD | 0x00;
-	HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-	HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, (uint8_t*)"Khang Handsome", 20, 10);
-	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
-
-    // 3. Chờ cho đến khi có dữ liệu (RX_DR) hoặc hết Timeout
-
-    do {
-        status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
-        timeoutCount--;
-    } while (!(status & (1 << 6)) && (timeoutCount > 0)); // Bit 6 là RX_DR
-
-    // 4. Nếu thoát vòng lặp do có dữ liệu (RX_DR = 1)
-    if (status & (1 << 6)) {
-        // Lấy Pipe ID của gói tin đầu tiên
-        pipeId = (status >> 1) & 0x07;
-
-        // Vòng lặp "Hút sạch" FIFO
-        do {
-        	/* 1. Kéo CSN xuống thấp để bắt đầu phiên SPI */
-        	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
-        	/* 2. Gửi lệnh đọc Payload */
-        	cmd = R_RX_PL_WID;
-        	HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-        	/* 3. Nhận dữ liệu (độ dài 'length' byte) từ module về mảng 'data' */
-        	length = 0 ;
-        	HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &length, 1, 100);
-        	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
-
-        	// Đọc Payload từ tầng hiện tại của FIFO
-            DRV_Nrf24L01ReadPayload(NRF24L01Instance, destinationPtr, length);
-
-            // Xóa cờ RX_DR để nRF có thể đẩy gói tin tiếp theo (nếu có) lên đầu FIFO
-            DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 6));
-
-            // Kiểm tra xem FIFO còn dữ liệu không (Bit 0 của FIFO_STATUS là RX_EMPTY)
-            fifo_status = DRV_Nrf_ReadRegister(NRF24L01Instance, FIFO_STATUS);
-
-        } while (!(fifo_status & (1 << 0))); // Tiếp tục nếu RX_EMPTY == 0
-
-        // Đưa CE về thấp (Standby-I) sau khi đã lấy hết dữ liệu
-        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
-        return pipeId;
-    }
-
-    // Nếu hết timeout mà không có dữ liệu
-    HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
-    NRF24L01Instance->State = NRF24_IDEL;
-    return -1;
-}
-void DRV_Nrf24l01ReceiveIT(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *destinationPtr)
-{
-	uint8_t status = 0 ;
-	uint8_t cmd    = 0 ;
-	uint8_t fifo_status = 0 ;
-	uint8_t length = 0 ;
-    NRF24L01Instance->State = NRF24_BUSY;
-	status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
-
-    /* Check status of NRF24L01 */
-    if (status & (1 << 6)) {
-        /* Looping to get all data */
-        do {
-        	/* 1. Kéo CSN xuống thấp để bắt đầu phiên SPI */
-        	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
-        	/* 2. Gửi lệnh đọc Payload */
-        	cmd = R_RX_PL_WID;
-        	HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-        	/* 3. Nhận dữ liệu (độ dài 'length' byte) từ module về mảng 'data' */
-        	HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &length, 1, 100);
-        	HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
-
-        	// Đọc Payload từ tầng hiện tại của FIFO
-            DRV_Nrf24L01ReadPayload(NRF24L01Instance, destinationPtr, length);
-
-            // Xóa cờ RX_DR để nRF có thể đẩy gói tin tiếp theo (nếu có) lên đầu FIFO
-            DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 6));
-
-            // Kiểm tra xem FIFO còn dữ liệu không (Bit 0 của FIFO_STATUS là RX_EMPTY)
-            fifo_status = DRV_Nrf_ReadRegister(NRF24L01Instance, FIFO_STATUS);
-
-        } while (!(fifo_status & (1 << 0))); // Tiếp tục nếu RX_EMPTY == 0
-
-        // Đưa CE về thấp (Standby-I) sau khi đã lấy hết dữ liệu
-        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
-    }
-    NRF24L01Instance->State = NRF24_IDEL;
-}
-NRF24L01_ReturnType DRV_Nrf24l01Transmit(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *targetAddr, uint8_t *sourcePtr, uint8_t length)
-{
-    uint8_t cmd;
-    uint8_t status;
-    uint8_t ackLength = 0;
-    uint32_t timeout = 500;
-    uint8_t data_with_ack[32] = {0};
-    if ( /*NRF24L01Instance->State == NRF24_IDEL &&*/  1)
+    /* 3. Wait for data or timeout */
+    if ( FALSE == NRF24L01Instance->InterruptMode)
     {
-		// Bước 1: Đảm bảo PRIM_RX = 0 (Chế độ TX)
-		uint8_t config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
-		config &= ~(1 << 0); // Clear PRIM_RX
-		DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config);
-
-		// Bước 2: Cấu hình địa chỉ và Nạp Payload
-		DRV_Nrf24l01OpenWritingPipe(NRF24L01Instance, targetAddr);
-		DRV_Nrf24L01WritePayload(NRF24L01Instance, sourcePtr, length);
-
-		// Bước 3: Phát sóng
-		HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_SET);
-		HAL_Delay(1); // 1ms là quá đủ cho xung 10us
-		HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
-
-		// Bước 4: Đợi TX_DS (thành công) hoặc MAX_RT (thất bại)
-		do {
-			status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
-			timeout--;
-		} while (!(status & ((1 << 5) | (1 << 4))) && (timeout > 0));
-
-		// Bước 5: Xử lý kết quả truyền
-		if ((status & (1 << 4)) || (timeout == 0)) // Lỗi MAX_RT hoặc Timeout SPI
-		{
-			DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 4)); // Xóa cờ MAX_RT
-
-			cmd = FLUSH_TX;
-			HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 0);
-			HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-			HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 1);
-
-			return STD_E_NOT_OK;
-		}
-
-		// Bước 6: Nếu truyền thành công (TX_DS), kiểm tra xem có ACK Payload đi kèm không
-		if (status & (1 << 5))
-		{
-			// Xóa cờ TX_DS
-			DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 5));
-
-			// Kiểm tra bit RX_DR hoặc FIFO_STATUS xem có dữ liệu trong RX FIFO không
-			// (Khi có ACK Payload, nRF nhận xong sẽ dựng RX_DR)
-			if (status & (1 << 6))
-			{
-				// 1. Đọc độ dài gói ACK Payload
-				HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
-				cmd = R_RX_PL_WID;
-				HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-				HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &ackLength, 1, 10);
-				HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
-
-				if (ackLength <= 32)
-				{
-					// 2. Đọc dữ liệu phản hồi vào mảng sourcePtr (hoặc mảng riêng nếu bạn muốn)
-					DRV_Nrf24L01ReadPayload(NRF24L01Instance, data_with_ack, ackLength);
-				}
-				else
-				{
-					// Gói tin rác
-					cmd = FLUSH_RX;
-					HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 0);
-					HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-					HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 1);
-				}
-
-				// 3. Xóa cờ RX_DR sau khi đọc xong
-				DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 6));
-			}
-		}
+        do {
+            status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
+            timeoutCount--;
+        } while (!(status & (1 << 6)) && (timeoutCount > 0)); /* Bit 6 is RX_DR */
     }
-    return STD_E_OK;
+    else
+    {
+        status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
+    }
+
+    /* 4. If data received (RX_DR = 1) */
+    if (status & (1 << 6)) {
+        /* Identify source Pipe ID */
+        (*pipeID) = (status >> 1) & 0x07;
+
+        /* Empty the FIFO */
+        do {
+            if ( NRF24L01Instance->DynamicPayloadEnable == TRUE)
+            {
+                HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+                cmd = R_RX_PL_WID;
+                HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+                HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &length, 1, 100);
+                HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+            }
+
+            /* Read Payload from the top of the FIFO */
+            DRV_Nrf24L01ReadPayload(NRF24L01Instance, destinationPtr, length);
+
+            /* Clear RX_DR flag to allow next packet processing */
+            DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 6));
+
+            /* Check if FIFO still contains data (RX_EMPTY bit) */
+            fifo_status = DRV_Nrf_ReadRegister(NRF24L01Instance, FIFO_STATUS);
+
+        } while (!(fifo_status & (1 << 0)));
+
+        /* Pull CE low (Standby-I) after processing */
+        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
+        retval = STD_E_OK;
+    }
+    else
+    {
+        /* Timeout or no data */
+        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
+        retval = STD_E_NOT_OK;
+    }
+
+    NRF24L01Instance->State = NRF24_IDEL;
+    return retval;
 }
-NRF24L01_ReturnType DRV_Nrf24l01SetChannel(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t channel)
+
+NRF24L01_ReturnType DRV_Nrf24l01Transmit(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t channelID, uint8_t *targetAddr, uint8_t *sourcePtr)
 {
-	return STD_E_OK;
+    uint8_t cmd      = 0 ;
+    uint8_t status   = 0 ;
+    uint32_t timeout = 500;
+    NRF24L01_ReturnType retval = STD_E_OK;
+
+    /* Step 1: Ensure PRIM_RX = 0 (TX Mode) */
+    uint8_t config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
+    config &= ~(1 << 0);
+    DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config);
+
+    /* Step 2: Configure address and load payload */
+    DRV_Nrf24l01OpenWritingPipe(NRF24L01Instance, channelID, targetAddr);
+    DRV_Nrf24L01WritePayload(NRF24L01Instance, sourcePtr, LENGTH);
+
+    /* Step 3: Trigger transmission pulse */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_SET);
+    HAL_Delay(1); /* Pulse must be > 10us */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
+
+    /* Step 4: Wait for TX_DS (Success) or MAX_RT (Failed) */
+    do
+    {
+        status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
+        timeout--;
+    } while (!(status & ((1 << 5) | (1 << 4))) && (timeout > 0));
+
+    /* Step 5: Handle transmission result */
+    if ((status & (1 << 4)) || (timeout == 0)) /* MAX_RT error or SPI Timeout */
+    {
+        DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 4)); /* Clear MAX_RT flag */
+
+        cmd = FLUSH_TX;
+        HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 0);
+        HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+        HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, 1);
+
+        retval =  STD_E_NOT_OK;
+    }
+    return retval;
+}
+
+NRF24L01_ReturnType DRV_Nrf24l01ReadPayloadWithAck(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t* destinationPtr, uint32_t timeout)
+{
+    uint8_t status      = 0;
+    uint8_t fifo_status = 0;
+    uint8_t cmd         = 0 ;
+    NRF24L01_ReturnType retval = STD_E_OK;
+    uint8_t length       = 0;
+
+    status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
+
+    /* Check if data is available (RX_DR = 1) */
+    if (status & (1 << 6))
+    {
+        do
+        {
+            if ( NRF24L01Instance->DynamicPayloadEnable == TRUE)
+            {
+                HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+                cmd = R_RX_PL_WID;
+                HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+                HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &length, 1, 100);
+                HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+
+                DRV_Nrf24L01ReadPayload(NRF24L01Instance, destinationPtr, length);
+            }
+            else
+            {
+                DRV_Nrf24L01ReadPayload(NRF24L01Instance, destinationPtr, LENGTH);
+            }
+
+            /* Clear RX_DR flag */
+            DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 6));
+            fifo_status = DRV_Nrf_ReadRegister(NRF24L01Instance, FIFO_STATUS);
+
+        } while (!(fifo_status & (1 << 0)));
+
+        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
+        retval = STD_E_OK;
+    }
+    else
+    {
+        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
+        retval = STD_E_NOT_OK;
+    }
+    return retval;
 }
 
 NRF24L01_ReturnType DRV_Nrf24l01SetDataRate(NRF24L01_HandleTypedef* NRF24L01Instance, NRF24L01_AirDataDateTypedef speed)
 {
     uint8_t rf_setup = DRV_Nrf_ReadRegister(NRF24L01Instance, RF_SETUP);
 
-    // Tốc độ nằm ở bit 3 (RF_DR_HIGH).
-    // Theo header của bạn: 0 = 1MBPS, 1 = 2MBPS
+    /* Data rate is controlled by bit 3 (RF_DR_HIGH) */
     if (speed == NRF24L01_2MBPS)
     {
         rf_setup |= (1 << 3);
@@ -385,68 +342,170 @@ NRF24L01_ReturnType DRV_Nrf24l01SetDataRate(NRF24L01_HandleTypedef* NRF24L01Inst
 
     DRV_Nrf_WriteRegister(NRF24L01Instance, RF_SETUP, rf_setup);
 
-    // Kiểm tra lại xem đã ghi thành công chưa
+    /* Verify if write was successful */
     if (DRV_Nrf_ReadRegister(NRF24L01Instance, RF_SETUP) == rf_setup) return STD_E_OK;
     return STD_E_NOT_OK;
 }
+
 NRF24L01_ReturnType DRV_Nrf24l01SetPALevel(NRF24L01_HandleTypedef* NRF24L01Instance, NRF24L01_OutputPowerTypedef level)
 {
     uint8_t rf_setup = DRV_Nrf_ReadRegister(NRF24L01Instance, RF_SETUP);
 
-    // Xóa bit 2:1 hiện tại
+    /* Clear existing bits 2:1 */
     rf_setup &= ~(0x06);
 
-    // Ghi level mới vào (Dịch sang trái 1 bit để khớp vị trí 2:1)
+    /* Write new level into bits 2:1 */
     rf_setup |= (level << 1);
 
     DRV_Nrf_WriteRegister(NRF24L01Instance, RF_SETUP, rf_setup);
     return STD_E_OK;
 }
-NRF24L01_ReturnType DRV_Nrf24l01OpenWritingPipe(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *address)
+
+NRF24L01_ReturnType DRV_Nrf24l01OpenWritingPipe(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t channelID, uint8_t *address)
 {
-    // Bước 1: Ghi địa chỉ vào TX_ADDR (5 byte mặc định)
+    uint8_t fullAddress[5];
+    uint8_t counter = 0 ;
+
+    if (channelID < 2)
+    {
+        /* For Pipe 0 and 1, use the full 5-byte address provided */
+        for(counter = 0; counter < 5; counter++)
+        {
+            fullAddress[counter] = address[counter];
+        }
+    }
+    else
+    {
+        /* For Pipes 2-5, LSB is unique, but MSBs must match Pipe 1 */
+        for(counter = 1; counter < 5; counter++)
+        {
+            fullAddress[counter] = NRF24L01Instance->RxAddressP1[counter];
+        }
+        fullAddress[0] = address[0];
+    }
+
+    /* 1. Write FULL address to TX_ADDR register */
     uint8_t cmd = W_REGISTER | TX_ADDR;
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
     HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, address, 5, 50);
+    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, fullAddress, 5, 50);
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
 
-    // Bước 2: Ghi trùng địa chỉ vào RX_ADDR_P0 để hứng gói tin ACK
+    /* 2. Write same address to RX_ADDR_P0 to enable Auto-ACK reception */
     cmd = W_REGISTER | RX_ADDR_P0;
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
     HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, address, 5, 50);
+    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, fullAddress, 5, 50);
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
 
     return STD_E_OK;
 }
+
 NRF24L01_ReturnType DRV_Nrf24l01OpenReadingPipe(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t pipeNum, uint8_t *address)
 {
+    NRF24L01_ReturnType retval = STD_E_OK ;
+    uint8_t reg = 0 ;
+    uint8_t cmd = 0 ;
+    uint8_t en_rx = 0 ;
+    uint8_t addrSize = 0 ;
+
     if (pipeNum > 5)
     {
-    	return STD_E_NOT_OK;
+        retval = STD_E_NOT_OK;
+        (void) en_rx; (void) cmd ; (void) reg ;
+    }
+    else
+    {
+        /* 1. Write address to RX_ADDR_Px register */
+        reg = RX_ADDR_P0 + pipeNum;
+        cmd = W_REGISTER | reg;
+
+        HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+        HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+
+        /* P0 and P1 use 5 bytes, P2-P5 only use 1 byte (LSB) */
+        addrSize = (pipeNum < 2) ? 5 : 1;
+        HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, address, addrSize, 10);
+        HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+
+        /* 2. Set static Payload Width (Defaulting to 32 bytes) */
+        DRV_Nrf_WriteRegister(NRF24L01Instance, RX_PW_P0 + pipeNum, 32);
+
+        /* 3. Activate the specific Pipe in EN_RXADDR register */
+        en_rx = DRV_Nrf_ReadRegister(NRF24L01Instance, EN_RXADDR);
+        en_rx |= (1 << pipeNum);
+        DRV_Nrf_WriteRegister(NRF24L01Instance, EN_RXADDR, en_rx);
+        retval = STD_E_OK;
     }
 
-    // 1. Ghi địa chỉ vào thanh ghi RX_ADDR_Px
-    uint8_t reg = RX_ADDR_P0 + pipeNum;
-    uint8_t cmd = W_REGISTER | reg;
-
-    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
-    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-
-    // P0 và P1 dùng 5 byte, P2-P5 chỉ dùng 1 byte cuối (LSB)
-    uint8_t addrSize = (pipeNum < 2) ? 5 : 1;
-    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, address, addrSize, 10);
-    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
-
-//    // 2. Thiết lập độ rộng Payload (mặc định 32 byte để dễ dùng)
-//    DRV_Nrf_WriteRegister(NRF24L01Instance, RX_PW_P0 + pipeNum, 32);
-
-    // 3. Kích hoạt Pipe này trong thanh ghi EN_RXADDR
-    uint8_t en_rx = DRV_Nrf_ReadRegister(NRF24L01Instance, EN_RXADDR);
-    en_rx |= (1 << pipeNum);
-    DRV_Nrf_WriteRegister(NRF24L01Instance, EN_RXADDR, en_rx);
-
-    return STD_E_OK;
+    return retval;
 }
 
+/*
+ * Local helper functions
+ */
+static uint8_t DRV_Nrf_ReadRegister(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t reg)
+{
+    uint8_t cmd = READ_REGISTER(reg);
+    uint8_t status = 0;
+    uint8_t data = 0;
+
+    /* Start SPI transmission */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+
+    /* Send address and read status simultaneously, then read data */
+    HAL_SPI_TransmitReceive(NRF24L01Instance->SPI_Instance, &cmd, &status, 1, 10);
+    HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &data, 1, 10);
+
+    /* End SPI transmission */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+
+    return data;
+}
+
+static void DRV_Nrf_WriteRegister(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t reg, uint8_t data)
+{
+    uint8_t l_reg = WRITE_REGISTER(reg);
+
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+
+    /* Send register address and then the data byte */
+    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &l_reg , 1, 10);
+    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &data, 1, 10);
+
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+}
+
+/**
+ * @brief Reads a payload from the RX FIFO
+ */
+static void DRV_Nrf24L01ReadPayload(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *data, uint8_t length)
+{
+    uint8_t cmd = R_RX_PAYLOAD;
+
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+
+    /* Send command and receive the requested number of bytes */
+    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+    HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, data, length, 100);
+
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+}
+
+/**
+ * @brief Writes a payload into the TX FIFO
+ */
+static void DRV_Nrf24L01WritePayload(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *data, uint8_t length )
+{
+    uint8_t cmd = W_TX_PAYLOAD;
+
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+
+    /* Send command and then the payload buffer */
+    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+    HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, data, length, 100);
+
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+
+    /* Note: CE must be pulsed HIGH for at least 10us after this to trigger transmission */
+}

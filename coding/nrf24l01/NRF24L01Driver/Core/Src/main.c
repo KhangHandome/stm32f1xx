@@ -72,12 +72,14 @@ NRF24L01_HandleTypedef Instance0 =
     .InterruptPort = CHIP_Irq_GPIO_Port,
     .ChipEnablePin = CHIP_Enable_Pin,
     .ChipEnablePort  = CHIP_Enable_GPIO_Port,
-    .OperationMode = NRF24_MODE_POLLING,
+    .InterruptMode = FALSE,
     .NRF24L01_OutputPower = NRF24_MEDIUM_POWER,
     .NRF24L01_AirDataDate = NRF24L01_1MBPS,
     .FrequencyChannel     = 120,
     .AutoRetransmitCount = 10,
     .AutoRetransmitDelay = 10,
+	.DynamicPayloadEnable = TRUE,
+	.PayloadWithAckEnable = TRUE,
 	.State = NRF24_UNINIT,
     // Gán địa chỉ mặc định
     .RxAddressP0 = {0x11, 0x22, 0x33, 0x44, 0x55},
@@ -95,7 +97,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	uint8_t pipeID = 0 ;
+	uint32_t counter = 0 ;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -125,7 +128,7 @@ int main(void)
   DRV_Nrf24l01SwitchMode(&Instance0,1);
 #ifndef IS_TRANSMITTER_NODE
 
-  NVIC_EnableIRQ(EXTI4_IRQn);
+//  NVIC_EnableIRQ(EXTI4_IRQn);
 #endif
   /* USER CODE END 2 */
 
@@ -139,36 +142,34 @@ int main(void)
 #ifdef IS_TRANSMITTER_NODE
 	  uint8_t status = 0 ;
       /* --- KỊCH BẢN PHÁT (TX) --- */
-	  status = DRV_Nrf24l01Transmit(&Instance0, masterAddress0, (uint8_t*)"FPT SOFT WARE ", 15);
+	  status = DRV_Nrf24l01Transmit(&Instance0,2, &masterAddress2[1], (uint8_t*)"FPT SOFT WARE ");
 	  if ( status == STD_E_OK)
 	  {
-		  DRV_Nrf24l01Receive(&Instance0, dummyPayload, 32);
-	      if(dummyPayload[0] == 'K')
+		  /*DRV_Nrf24l01Receive(&Instance0, dummyPayload, 32);*/
+		  DRV_Nrf24l01ReadPayloadWithAck(&Instance0, dummyPayload, 100);
+	      if(dummyPayload[0] == 'C')
 	      {
 	    	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	    	  dummyPayload[0] = '\0';
 
 	      }
 	  }
-      HAL_Delay(100); // Gửi mỗi 0.5 giây
+	  else
+	  {
+		  counter ++ ;
+	  }
+      HAL_Delay(200); // Gửi mỗi 0.5 giây
 
 #else
       /* --- KỊCH BẢN NHẬN (RX) --- */
+      DRV_Nrf24l01WritePayloadWithAck(&Instance0, 3, (uint8_t*) "Come from fpt software");
       // Đảm bảo chân CE luôn cao để lắng nghe
       HAL_GPIO_WritePin(Instance0.ChipEnablePort, Instance0.ChipEnablePin, GPIO_PIN_SET);
-//
-//      DRV_Nrf24l01Receive(&Instance0, dummyPayload, 32);
-      if ( flag == 1 )
-      {
-    	  DRV_Nrf24l01ReceiveIT(&Instance0, dummyPayload);
-    	  flag = 0 ;
-      }
+      DRV_Nrf24l01Receive(&Instance0,&pipeID, dummyPayload, 10 );
       if(dummyPayload[0] == 'F')
       {
     	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     	  dummyPayload[0] = '\0';
-    	  DRV_Nrf24l01Transmit(&Instance0, masterAddress0, (uint8_t*)"Khang DZ", 32);
-    	  DRV_Nrf24l01SwitchMode(&Instance0,1);
       }
 #endif
   }

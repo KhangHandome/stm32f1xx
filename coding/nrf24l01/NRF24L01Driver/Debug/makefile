@@ -35,34 +35,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := NRF24L01Driver
+BUILD_ARTIFACT_NAME := NRF24L01Driver_v1
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-NRF24L01Driver.elf \
+NRF24L01Driver_v1.elf \
 
 MAP_FILES += \
-NRF24L01Driver.map \
+NRF24L01Driver_v1.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-NRF24L01Driver.list \
+NRF24L01Driver_v1.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: NRF24L01Driver.elf secondary-outputs
+main-build: NRF24L01Driver_v1.elf secondary-outputs
 
 # Tool invocations
-NRF24L01Driver.elf NRF24L01Driver.map: $(OBJS) $(USER_OBJS) /home/khang/Documents/stm32f1xx/coding/nrf24l01/NRF24L01Driver/STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "NRF24L01Driver.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/home/khang/Documents/stm32f1xx/coding/nrf24l01/NRF24L01Driver/STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="NRF24L01Driver.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+NRF24L01Driver_v1.elf NRF24L01Driver_v1.map: $(OBJS) $(USER_OBJS) /home/khang/Documents/stm32f1xx/coding/nrf24l01/NRF24L01Driver/STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "NRF24L01Driver_v1.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/home/khang/Documents/stm32f1xx/coding/nrf24l01/NRF24L01Driver/STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="NRF24L01Driver_v1.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -71,14 +71,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-NRF24L01Driver.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "NRF24L01Driver.list"
+NRF24L01Driver_v1.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "NRF24L01Driver_v1.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) NRF24L01Driver.elf NRF24L01Driver.list NRF24L01Driver.map default.size.stdout
+	-$(RM) NRF24L01Driver_v1.elf NRF24L01Driver_v1.list NRF24L01Driver_v1.map default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
