@@ -5,47 +5,47 @@ Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
   0 .isr_vector   0000010c  08000000  08000000  00001000  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  1 .text         00002578  0800010c  0800010c  0000110c  2**2
+  1 .text         0000261c  0800010c  0800010c  0000110c  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       0000003c  08002684  08002684  00003684  2**2
+  2 .rodata       0000003c  08002728  08002728  00003728  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.extab    00000000  080026c0  080026c0  00004054  2**0
+  3 .ARM.extab    00000000  08002764  08002764  00004054  2**0
                   CONTENTS, READONLY
-  4 .ARM          00000000  080026c0  080026c0  00004054  2**0
+  4 .ARM          00000000  08002764  08002764  00004054  2**0
                   CONTENTS, READONLY
-  5 .preinit_array 00000000  080026c0  080026c0  00004054  2**0
+  5 .preinit_array 00000000  08002764  08002764  00004054  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  6 .init_array   00000004  080026c0  080026c0  000036c0  2**2
+  6 .init_array   00000004  08002764  08002764  00003764  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  7 .fini_array   00000004  080026c4  080026c4  000036c4  2**2
+  7 .fini_array   00000004  08002768  08002768  00003768  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  8 .data         00000054  20000000  080026c8  00004000  2**2
+  8 .data         00000054  20000000  0800276c  00004000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .bss          0000009c  20000054  0800271c  00004054  2**2
+  9 .bss          0000009c  20000054  080027c0  00004054  2**2
                   ALLOC
- 10 ._user_heap_stack 00000600  200000f0  0800271c  000040f0  2**0
+ 10 ._user_heap_stack 00000600  200000f0  080027c0  000040f0  2**0
                   ALLOC
  11 .ARM.attributes 00000029  00000000  00000000  00004054  2**0
                   CONTENTS, READONLY
- 12 .debug_info   00005df5  00000000  00000000  0000407d  2**0
+ 12 .debug_info   00005e12  00000000  00000000  0000407d  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 000016c5  00000000  00000000  00009e72  2**0
+ 13 .debug_abbrev 000016c4  00000000  00000000  00009e8f  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 00000690  00000000  00000000  0000b538  2**3
+ 14 .debug_aranges 00000698  00000000  00000000  0000b558  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_rnglists 000004d5  00000000  00000000  0000bbc8  2**0
+ 15 .debug_rnglists 000004db  00000000  00000000  0000bbf0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  0001654b  00000000  00000000  0000c09d  2**0
+ 16 .debug_macro  0001654b  00000000  00000000  0000c0cb  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0000780c  00000000  00000000  000225e8  2**0
+ 17 .debug_line   00007871  00000000  00000000  00022616  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0007e377  00000000  00000000  00029df4  2**0
+ 18 .debug_str    0007e398  00000000  00000000  00029e87  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  000a816b  2**0
+ 19 .comment      00000043  00000000  00000000  000a821f  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  0000186c  00000000  00000000  000a81b0  2**2
+ 20 .debug_frame  00001890  00000000  00000000  000a8264  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 0000006d  00000000  00000000  000a9a1c  2**0
+ 21 .debug_line_str 0000006d  00000000  00000000  000a9af4  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -64,7 +64,7 @@ Disassembly of section .text:
  8000122:	bd10      	pop	{r4, pc}
  8000124:	20000054 	.word	0x20000054
  8000128:	00000000 	.word	0x00000000
- 800012c:	0800266c 	.word	0x0800266c
+ 800012c:	08002710 	.word	0x08002710
 
 08000130 <frame_dummy>:
  8000130:	b508      	push	{r3, lr}
@@ -76,7 +76,7 @@ Disassembly of section .text:
  800013e:	bd08      	pop	{r3, pc}
  8000140:	00000000 	.word	0x00000000
  8000144:	20000058 	.word	0x20000058
- 8000148:	0800266c 	.word	0x0800266c
+ 8000148:	08002710 	.word	0x08002710
 
 0800014c <MX_GPIO_Init>:
         * Output
@@ -233,80 +233,84 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint8_t pipeID = 0 ;
  800023e:	2300      	movs	r3, #0
- 8000240:	70fb      	strb	r3, [r7, #3]
+ 8000240:	70bb      	strb	r3, [r7, #2]
 	uint32_t counter = 0 ;
  8000242:	2300      	movs	r3, #0
  8000244:	607b      	str	r3, [r7, #4]
+	uint8_t status = 0 ;
+ 8000246:	2300      	movs	r3, #0
+ 8000248:	70fb      	strb	r3, [r7, #3]
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
- 8000246:	f000 f997 	bl	8000578 <HAL_Init>
+ 800024a:	f000 f995 	bl	8000578 <HAL_Init>
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
- 800024a:	f000 f839 	bl	80002c0 <SystemClock_Config>
+ 800024e:	f000 f837 	bl	80002c0 <SystemClock_Config>
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
- 800024e:	f7ff ff7d 	bl	800014c <MX_GPIO_Init>
+ 8000252:	f7ff ff7b 	bl	800014c <MX_GPIO_Init>
   MX_SPI1_Init();
- 8000252:	f000 f887 	bl	8000364 <MX_SPI1_Init>
+ 8000256:	f000 f885 	bl	8000364 <MX_SPI1_Init>
   /* USER CODE BEGIN 2 */
   if(DRV_Nrf24l01Init(&Instance0) != STD_E_OK)
- 8000256:	4816      	ldr	r0, [pc, #88]	@ (80002b0 <main+0x78>)
- 8000258:	f001 fe21 	bl	8001e9e <DRV_Nrf24l01Init>
- 800025c:	4603      	mov	r3, r0
- 800025e:	2b00      	cmp	r3, #0
- 8000260:	d001      	beq.n	8000266 <main+0x2e>
+ 800025a:	4815      	ldr	r0, [pc, #84]	@ (80002b0 <main+0x78>)
+ 800025c:	f001 fe1f 	bl	8001e9e <DRV_Nrf24l01Init>
+ 8000260:	4603      	mov	r3, r0
+ 8000262:	2b00      	cmp	r3, #0
+ 8000264:	d001      	beq.n	800026a <main+0x32>
   {
 	Error_Handler(); // Nếu Init lỗi sẽ kẹt ở đây
- 8000262:	f000 f879 	bl	8000358 <Error_Handler>
-  }
-  DRV_Nrf24l01SwitchMode(&Instance0,1);
- 8000266:	2101      	movs	r1, #1
- 8000268:	4811      	ldr	r0, [pc, #68]	@ (80002b0 <main+0x78>)
- 800026a:	f001 ff32 	bl	80020d2 <DRV_Nrf24l01SwitchMode>
+ 8000266:	f000 f877 	bl	8000358 <Error_Handler>
 	  }
       HAL_Delay(200); // Gửi mỗi 0.5 giây
 
 #else
       /* --- KỊCH BẢN NHẬN (RX) --- */
       DRV_Nrf24l01WritePayloadWithAck(&Instance0, 3, (uint8_t*) "Come from fpt software");
- 800026e:	4a11      	ldr	r2, [pc, #68]	@ (80002b4 <main+0x7c>)
- 8000270:	2103      	movs	r1, #3
- 8000272:	480f      	ldr	r0, [pc, #60]	@ (80002b0 <main+0x78>)
- 8000274:	f001 ff74 	bl	8002160 <DRV_Nrf24l01WritePayloadWithAck>
-      // Đảm bảo chân CE luôn cao để lắng nghe
-      HAL_GPIO_WritePin(Instance0.ChipEnablePort, Instance0.ChipEnablePin, GPIO_PIN_SET);
- 8000278:	4b0d      	ldr	r3, [pc, #52]	@ (80002b0 <main+0x78>)
- 800027a:	699b      	ldr	r3, [r3, #24]
- 800027c:	4a0c      	ldr	r2, [pc, #48]	@ (80002b0 <main+0x78>)
- 800027e:	8a91      	ldrh	r1, [r2, #20]
- 8000280:	2201      	movs	r2, #1
- 8000282:	4618      	mov	r0, r3
- 8000284:	f000 fc66 	bl	8000b54 <HAL_GPIO_WritePin>
-      DRV_Nrf24l01Receive(&Instance0,&pipeID, dummyPayload, 10 );
- 8000288:	1cf9      	adds	r1, r7, #3
+ 800026a:	4a12      	ldr	r2, [pc, #72]	@ (80002b4 <main+0x7c>)
+ 800026c:	2103      	movs	r1, #3
+ 800026e:	4810      	ldr	r0, [pc, #64]	@ (80002b0 <main+0x78>)
+ 8000270:	f001 ffac 	bl	80021cc <DRV_Nrf24l01WritePayloadWithAck>
+      DRV_Nrf24l01SwitchMode(&Instance0, NRF24_RECEIVE_MODE);
+ 8000274:	2101      	movs	r1, #1
+ 8000276:	480e      	ldr	r0, [pc, #56]	@ (80002b0 <main+0x78>)
+ 8000278:	f001 ff61 	bl	800213e <DRV_Nrf24l01SwitchMode>
+      if ( DRV_Nrf24l01DataReceiveAvailable(&Instance0) == 1 )
+ 800027c:	480c      	ldr	r0, [pc, #48]	@ (80002b0 <main+0x78>)
+ 800027e:	f001 ff2f 	bl	80020e0 <DRV_Nrf24l01DataReceiveAvailable>
+ 8000282:	4603      	mov	r3, r0
+ 8000284:	2b01      	cmp	r3, #1
+ 8000286:	d105      	bne.n	8000294 <main+0x5c>
+      {
+          DRV_Nrf24l01Receive(&Instance0,&pipeID, dummyPayload, 10 );
+ 8000288:	1cb9      	adds	r1, r7, #2
  800028a:	230a      	movs	r3, #10
  800028c:	4a0a      	ldr	r2, [pc, #40]	@ (80002b8 <main+0x80>)
  800028e:	4808      	ldr	r0, [pc, #32]	@ (80002b0 <main+0x78>)
- 8000290:	f001 ffb9 	bl	8002206 <DRV_Nrf24l01Receive>
+ 8000290:	f001 ffe7 	bl	8002262 <DRV_Nrf24l01Receive>
+    			 Maximum number of TX retransmits interrupt
+    			DRV_Nrf24l01ClearIRQ(&Instance0, 4 );
+    		}
+			flag = 0 ;
+      }*/
       if(dummyPayload[0] == 'F')
  8000294:	4b08      	ldr	r3, [pc, #32]	@ (80002b8 <main+0x80>)
  8000296:	781b      	ldrb	r3, [r3, #0]
  8000298:	2b46      	cmp	r3, #70	@ 0x46
- 800029a:	d1e8      	bne.n	800026e <main+0x36>
+ 800029a:	d1e6      	bne.n	800026a <main+0x32>
       {
-
     	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
  800029c:	f44f 5100 	mov.w	r1, #8192	@ 0x2000
  80002a0:	4806      	ldr	r0, [pc, #24]	@ (80002bc <main+0x84>)
@@ -316,10 +320,10 @@ int main(void)
  80002a8:	2200      	movs	r2, #0
  80002aa:	701a      	strb	r2, [r3, #0]
       DRV_Nrf24l01WritePayloadWithAck(&Instance0, 3, (uint8_t*) "Come from fpt software");
- 80002ac:	e7df      	b.n	800026e <main+0x36>
+ 80002ac:	e7dd      	b.n	800026a <main+0x32>
  80002ae:	bf00      	nop
  80002b0:	20000000 	.word	0x20000000
- 80002b4:	08002684 	.word	0x08002684
+ 80002b4:	08002728 	.word	0x08002728
  80002b8:	20000070 	.word	0x20000070
  80002bc:	40011000 	.word	0x40011000
 
@@ -338,7 +342,7 @@ void SystemClock_Config(void)
  80002ca:	2228      	movs	r2, #40	@ 0x28
  80002cc:	2100      	movs	r1, #0
  80002ce:	4618      	mov	r0, r3
- 80002d0:	f002 f9a0 	bl	8002614 <memset>
+ 80002d0:	f002 f9f2 	bl	80026b8 <memset>
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
  80002d4:	1d3b      	adds	r3, r7, #4
  80002d6:	2200      	movs	r2, #0
@@ -960,7 +964,7 @@ LoopFillZerobss:
 
 /* Call static constructors */
     bl __libc_init_array
- 8000556:	f002 f865 	bl	8002624 <__libc_init_array>
+ 8000556:	f002 f8b7 	bl	80026c8 <__libc_init_array>
 /* Call the application's entry point.*/
   bl main
  800055a:	f7ff fe6d 	bl	8000238 <main>
@@ -971,7 +975,7 @@ LoopFillZerobss:
   ldr r1, =_edata
  8000564:	20000054 	.word	0x20000054
   ldr r2, =_sidata
- 8000568:	080026c8 	.word	0x080026c8
+ 8000568:	0800276c 	.word	0x0800276c
   ldr r2, =_sbss
  800056c:	20000054 	.word	0x20000054
   ldr r4, =_ebss
@@ -3320,7 +3324,7 @@ if (((RCC_ClkInitStruct->ClockType) & RCC_CLOCKTYPE_PCLK1) == RCC_CLOCKTYPE_PCLK
  800127a:	bf00      	nop
  800127c:	40022000 	.word	0x40022000
  8001280:	40021000 	.word	0x40021000
- 8001284:	0800269c 	.word	0x0800269c
+ 8001284:	08002740 	.word	0x08002740
  8001288:	20000048 	.word	0x20000048
  800128c:	2000004c 	.word	0x2000004c
 
@@ -3455,8 +3459,8 @@ uint32_t HAL_RCC_GetSysClockFreq(void)
  8001322:	bf00      	nop
  8001324:	40021000 	.word	0x40021000
  8001328:	007a1200 	.word	0x007a1200
- 800132c:	080026ac 	.word	0x080026ac
- 8001330:	080026bc 	.word	0x080026bc
+ 800132c:	08002750 	.word	0x08002750
+ 8001330:	08002760 	.word	0x08002760
  8001334:	003d0900 	.word	0x003d0900
 
 08001338 <RCC_Delay>:
@@ -5509,11 +5513,11 @@ NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance)
  8001eb8:	220e      	movs	r2, #14
  8001eba:	2100      	movs	r1, #0
  8001ebc:	6878      	ldr	r0, [r7, #4]
- 8001ebe:	f000 fb4c 	bl	800255a <DRV_Nrf_WriteRegister>
+ 8001ebe:	f000 fb9e 	bl	80025fe <DRV_Nrf_WriteRegister>
     cmd = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
  8001ec2:	2100      	movs	r1, #0
  8001ec4:	6878      	ldr	r0, [r7, #4]
- 8001ec6:	f000 fb11 	bl	80024ec <DRV_Nrf_ReadRegister>
+ 8001ec6:	f000 fb63 	bl	8002590 <DRV_Nrf_ReadRegister>
  8001eca:	4603      	mov	r3, r0
  8001ecc:	737b      	strb	r3, [r7, #13]
 
@@ -5579,7 +5583,7 @@ NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance)
  8001f2c:	223f      	movs	r2, #63	@ 0x3f
  8001f2e:	211c      	movs	r1, #28
  8001f30:	6878      	ldr	r0, [r7, #4]
- 8001f32:	f000 fb12 	bl	800255a <DRV_Nrf_WriteRegister>
+ 8001f32:	f000 fb64 	bl	80025fe <DRV_Nrf_WriteRegister>
     }
     if (NRF24L01Instance->PayloadWithAckEnable == TRUE)
  8001f36:	687b      	ldr	r3, [r7, #4]
@@ -5599,21 +5603,21 @@ NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance)
  8001f4c:	461a      	mov	r2, r3
  8001f4e:	211d      	movs	r1, #29
  8001f50:	6878      	ldr	r0, [r7, #4]
- 8001f52:	f000 fb02 	bl	800255a <DRV_Nrf_WriteRegister>
+ 8001f52:	f000 fb54 	bl	80025fe <DRV_Nrf_WriteRegister>
 
     /* 4. Enable Auto-ACK for all Pipes (P0-P5) */
     DRV_Nrf_WriteRegister(NRF24L01Instance, EN_AA, 0x3F);
  8001f56:	223f      	movs	r2, #63	@ 0x3f
  8001f58:	2101      	movs	r1, #1
  8001f5a:	6878      	ldr	r0, [r7, #4]
- 8001f5c:	f000 fafd 	bl	800255a <DRV_Nrf_WriteRegister>
+ 8001f5c:	f000 fb4f 	bl	80025fe <DRV_Nrf_WriteRegister>
 
     /* 5. Enable all RX Addresses to be ready for reception */
     DRV_Nrf_WriteRegister(NRF24L01Instance, EN_RXADDR, 0x3F);
  8001f60:	223f      	movs	r2, #63	@ 0x3f
  8001f62:	2102      	movs	r1, #2
  8001f64:	6878      	ldr	r0, [r7, #4]
- 8001f66:	f000 faf8 	bl	800255a <DRV_Nrf_WriteRegister>
+ 8001f66:	f000 fb4a 	bl	80025fe <DRV_Nrf_WriteRegister>
 
     /* 6. Configure Automatic Retransmission (Delay and Retry Count) */
     DRV_Nrf_WriteRegister(NRF24L01Instance, SETUP_RETR, (NRF24L01Instance->AutoRetransmitDelay << 4) | (NRF24L01Instance->AutoRetransmitCount));
@@ -5631,7 +5635,7 @@ NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance)
  8001f84:	461a      	mov	r2, r3
  8001f86:	2104      	movs	r1, #4
  8001f88:	6878      	ldr	r0, [r7, #4]
- 8001f8a:	f000 fae6 	bl	800255a <DRV_Nrf_WriteRegister>
+ 8001f8a:	f000 fb38 	bl	80025fe <DRV_Nrf_WriteRegister>
 
     /* 7. Set RF Frequency Channel */
     DRV_Nrf_WriteRegister(NRF24L01Instance, RF_CH, NRF24L01Instance->FrequencyChannel);
@@ -5641,7 +5645,7 @@ NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance)
  8001f94:	461a      	mov	r2, r3
  8001f96:	2105      	movs	r1, #5
  8001f98:	6878      	ldr	r0, [r7, #4]
- 8001f9a:	f000 fade 	bl	800255a <DRV_Nrf_WriteRegister>
+ 8001f9a:	f000 fb30 	bl	80025fe <DRV_Nrf_WriteRegister>
 
     /* 8. Setup Data Rate and Power Level */
     DRV_Nrf24l01SetDataRate(NRF24L01Instance, NRF24L01Instance->NRF24L01_AirDataDate);
@@ -5649,17 +5653,17 @@ NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance)
  8001fa0:	7f9b      	ldrb	r3, [r3, #30]
  8001fa2:	4619      	mov	r1, r3
  8001fa4:	6878      	ldr	r0, [r7, #4]
- 8001fa6:	f000 f9e4 	bl	8002372 <DRV_Nrf24l01SetDataRate>
+ 8001fa6:	f000 fa36 	bl	8002416 <DRV_Nrf24l01SetDataRate>
     DRV_Nrf24l01SetPALevel(NRF24L01Instance, NRF24L01Instance->NRF24L01_OutputPower);
  8001faa:	687b      	ldr	r3, [r7, #4]
  8001fac:	7f5b      	ldrb	r3, [r3, #29]
  8001fae:	4619      	mov	r1, r3
  8001fb0:	6878      	ldr	r0, [r7, #4]
- 8001fb2:	f000 fa0c 	bl	80023ce <DRV_Nrf24l01SetPALevel>
+ 8001fb2:	f000 fa5e 	bl	8002472 <DRV_Nrf24l01SetPALevel>
     retval = DRV_Nrf_ReadRegister(NRF24L01Instance, RF_CH);
  8001fb6:	2105      	movs	r1, #5
  8001fb8:	6878      	ldr	r0, [r7, #4]
- 8001fba:	f000 fa97 	bl	80024ec <DRV_Nrf_ReadRegister>
+ 8001fba:	f000 fae9 	bl	8002590 <DRV_Nrf_ReadRegister>
  8001fbe:	4603      	mov	r3, r0
  8001fc0:	73bb      	strb	r3, [r7, #14]
 
@@ -5670,14 +5674,14 @@ NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance)
  8001fc6:	461a      	mov	r2, r3
  8001fc8:	2100      	movs	r1, #0
  8001fca:	6878      	ldr	r0, [r7, #4]
- 8001fcc:	f000 fa23 	bl	8002416 <DRV_Nrf24l01OpenReadingPipe>
+ 8001fcc:	f000 fa75 	bl	80024ba <DRV_Nrf24l01OpenReadingPipe>
     DRV_Nrf24l01OpenReadingPipe(NRF24L01Instance, 1, NRF24L01Instance->RxAddressP1);
  8001fd0:	687b      	ldr	r3, [r7, #4]
  8001fd2:	332f      	adds	r3, #47	@ 0x2f
  8001fd4:	461a      	mov	r2, r3
  8001fd6:	2101      	movs	r1, #1
  8001fd8:	6878      	ldr	r0, [r7, #4]
- 8001fda:	f000 fa1c 	bl	8002416 <DRV_Nrf24l01OpenReadingPipe>
+ 8001fda:	f000 fa6e 	bl	80024ba <DRV_Nrf24l01OpenReadingPipe>
 
     /* Addresses for Pipes 2 to 5 only require 1 LSB byte */
     for(counter = 2; counter <= 5; counter++) {
@@ -5694,7 +5698,7 @@ NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance)
  8001ff0:	7bfb      	ldrb	r3, [r7, #15]
  8001ff2:	4619      	mov	r1, r3
  8001ff4:	6878      	ldr	r0, [r7, #4]
- 8001ff6:	f000 fa0e 	bl	8002416 <DRV_Nrf24l01OpenReadingPipe>
+ 8001ff6:	f000 fa60 	bl	80024ba <DRV_Nrf24l01OpenReadingPipe>
     for(counter = 2; counter <= 5; counter++) {
  8001ffa:	7bfb      	ldrb	r3, [r7, #15]
  8001ffc:	3301      	adds	r3, #1
@@ -5765,7 +5769,7 @@ NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance)
  800206e:	2270      	movs	r2, #112	@ 0x70
  8002070:	2107      	movs	r1, #7
  8002072:	6878      	ldr	r0, [r7, #4]
- 8002074:	f000 fa71 	bl	800255a <DRV_Nrf_WriteRegister>
+ 8002074:	f000 fac3 	bl	80025fe <DRV_Nrf_WriteRegister>
 
     /* Avoid compiler warning for unused variable */
     (void) retval;
@@ -5824,421 +5828,419 @@ uint8_t DRV_Nrf24l01GetStatus(NRF24L01_HandleTypedef* NRF24L01Instance)
  80020c0:	2201      	movs	r2, #1
  80020c2:	4619      	mov	r1, r3
  80020c4:	f7fe fd46 	bl	8000b54 <HAL_GPIO_WritePin>
+    retval = (retval >> 6) & 0x01 ;
+ 80020c8:	7bfb      	ldrb	r3, [r7, #15]
+ 80020ca:	099b      	lsrs	r3, r3, #6
+ 80020cc:	b2db      	uxtb	r3, r3
+ 80020ce:	f003 0301 	and.w	r3, r3, #1
+ 80020d2:	b2db      	uxtb	r3, r3
+ 80020d4:	73fb      	strb	r3, [r7, #15]
+	return retval;
+ 80020d6:	7bfb      	ldrb	r3, [r7, #15]
+}
+ 80020d8:	4618      	mov	r0, r3
+ 80020da:	3710      	adds	r7, #16
+ 80020dc:	46bd      	mov	sp, r7
+ 80020de:	bd80      	pop	{r7, pc}
+
+080020e0 <DRV_Nrf24l01DataReceiveAvailable>:
+uint8_t DRV_Nrf24l01DataReceiveAvailable(NRF24L01_HandleTypedef* NRF24L01Instance)
+{
+ 80020e0:	b580      	push	{r7, lr}
+ 80020e2:	b086      	sub	sp, #24
+ 80020e4:	af02      	add	r7, sp, #8
+ 80020e6:	6078      	str	r0, [r7, #4]
+	uint8_t retval = 0 ;
+ 80020e8:	2300      	movs	r3, #0
+ 80020ea:	73fb      	strb	r3, [r7, #15]
+	uint8_t cmd    = 0xFFU;
+ 80020ec:	23ff      	movs	r3, #255	@ 0xff
+ 80020ee:	73bb      	strb	r3, [r7, #14]
+    /* Start SPI transmission */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+ 80020f0:	687b      	ldr	r3, [r7, #4]
+ 80020f2:	6898      	ldr	r0, [r3, #8]
+ 80020f4:	687b      	ldr	r3, [r7, #4]
+ 80020f6:	889b      	ldrh	r3, [r3, #4]
+ 80020f8:	2200      	movs	r2, #0
+ 80020fa:	4619      	mov	r1, r3
+ 80020fc:	f7fe fd2a 	bl	8000b54 <HAL_GPIO_WritePin>
+
+    /* Send address and read status simultaneously, then read data */
+    HAL_SPI_TransmitReceive(NRF24L01Instance->SPI_Instance, &cmd, &retval, 1, 10);
+ 8002100:	687b      	ldr	r3, [r7, #4]
+ 8002102:	6818      	ldr	r0, [r3, #0]
+ 8002104:	f107 020f 	add.w	r2, r7, #15
+ 8002108:	f107 010e 	add.w	r1, r7, #14
+ 800210c:	230a      	movs	r3, #10
+ 800210e:	9300      	str	r3, [sp, #0]
+ 8002110:	2301      	movs	r3, #1
+ 8002112:	f7ff fc10 	bl	8001936 <HAL_SPI_TransmitReceive>
+
+    /* End SPI transmission */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+ 8002116:	687b      	ldr	r3, [r7, #4]
+ 8002118:	6898      	ldr	r0, [r3, #8]
+ 800211a:	687b      	ldr	r3, [r7, #4]
+ 800211c:	889b      	ldrh	r3, [r3, #4]
+ 800211e:	2201      	movs	r2, #1
+ 8002120:	4619      	mov	r1, r3
+ 8002122:	f7fe fd17 	bl	8000b54 <HAL_GPIO_WritePin>
+    retval = (retval >> 6) & 0x01 ;
+ 8002126:	7bfb      	ldrb	r3, [r7, #15]
+ 8002128:	099b      	lsrs	r3, r3, #6
+ 800212a:	b2db      	uxtb	r3, r3
+ 800212c:	f003 0301 	and.w	r3, r3, #1
+ 8002130:	b2db      	uxtb	r3, r3
+ 8002132:	73fb      	strb	r3, [r7, #15]
 
 	return retval;
- 80020c8:	7bfb      	ldrb	r3, [r7, #15]
+ 8002134:	7bfb      	ldrb	r3, [r7, #15]
 }
- 80020ca:	4618      	mov	r0, r3
- 80020cc:	3710      	adds	r7, #16
- 80020ce:	46bd      	mov	sp, r7
- 80020d0:	bd80      	pop	{r7, pc}
+ 8002136:	4618      	mov	r0, r3
+ 8002138:	3710      	adds	r7, #16
+ 800213a:	46bd      	mov	sp, r7
+ 800213c:	bd80      	pop	{r7, pc}
 
-080020d2 <DRV_Nrf24l01SwitchMode>:
+0800213e <DRV_Nrf24l01SwitchMode>:
 void DRV_Nrf24l01ClearIRQ(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t InterruptID)
 {
 	DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << InterruptID));
 }
 NRF24L01_ReturnType DRV_Nrf24l01SwitchMode(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t mode)
 {
- 80020d2:	b580      	push	{r7, lr}
- 80020d4:	b084      	sub	sp, #16
- 80020d6:	af00      	add	r7, sp, #0
- 80020d8:	6078      	str	r0, [r7, #4]
- 80020da:	460b      	mov	r3, r1
- 80020dc:	70fb      	strb	r3, [r7, #3]
+ 800213e:	b580      	push	{r7, lr}
+ 8002140:	b084      	sub	sp, #16
+ 8002142:	af00      	add	r7, sp, #0
+ 8002144:	6078      	str	r0, [r7, #4]
+ 8002146:	460b      	mov	r3, r1
+ 8002148:	70fb      	strb	r3, [r7, #3]
     uint8_t config = 0 ;
- 80020de:	2300      	movs	r3, #0
- 80020e0:	73bb      	strb	r3, [r7, #14]
+ 800214a:	2300      	movs	r3, #0
+ 800214c:	73bb      	strb	r3, [r7, #14]
     NRF24L01_ReturnType retval = STD_E_OK ;
- 80020e2:	2300      	movs	r3, #0
- 80020e4:	73fb      	strb	r3, [r7, #15]
+ 800214e:	2300      	movs	r3, #0
+ 8002150:	73fb      	strb	r3, [r7, #15]
     if ( mode ==  NRF24_RECEIVE_MODE)
- 80020e6:	78fb      	ldrb	r3, [r7, #3]
- 80020e8:	2b01      	cmp	r3, #1
- 80020ea:	d117      	bne.n	800211c <DRV_Nrf24l01SwitchMode+0x4a>
+ 8002152:	78fb      	ldrb	r3, [r7, #3]
+ 8002154:	2b01      	cmp	r3, #1
+ 8002156:	d117      	bne.n	8002188 <DRV_Nrf24l01SwitchMode+0x4a>
     {
         /* Switch to receive mode by setting PRIM_RX bit */
         config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
- 80020ec:	2100      	movs	r1, #0
- 80020ee:	6878      	ldr	r0, [r7, #4]
- 80020f0:	f000 f9fc 	bl	80024ec <DRV_Nrf_ReadRegister>
- 80020f4:	4603      	mov	r3, r0
- 80020f6:	73bb      	strb	r3, [r7, #14]
+ 8002158:	2100      	movs	r1, #0
+ 800215a:	6878      	ldr	r0, [r7, #4]
+ 800215c:	f000 fa18 	bl	8002590 <DRV_Nrf_ReadRegister>
+ 8002160:	4603      	mov	r3, r0
+ 8002162:	73bb      	strb	r3, [r7, #14]
         DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config | (1 << 0));
- 80020f8:	7bbb      	ldrb	r3, [r7, #14]
- 80020fa:	f043 0301 	orr.w	r3, r3, #1
- 80020fe:	b2db      	uxtb	r3, r3
- 8002100:	461a      	mov	r2, r3
- 8002102:	2100      	movs	r1, #0
- 8002104:	6878      	ldr	r0, [r7, #4]
- 8002106:	f000 fa28 	bl	800255a <DRV_Nrf_WriteRegister>
+ 8002164:	7bbb      	ldrb	r3, [r7, #14]
+ 8002166:	f043 0301 	orr.w	r3, r3, #1
+ 800216a:	b2db      	uxtb	r3, r3
+ 800216c:	461a      	mov	r2, r3
+ 800216e:	2100      	movs	r1, #0
+ 8002170:	6878      	ldr	r0, [r7, #4]
+ 8002172:	f000 fa44 	bl	80025fe <DRV_Nrf_WriteRegister>
 
         /* Enable CE Pin to enter RX mode */
         HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_SET);
- 800210a:	687b      	ldr	r3, [r7, #4]
- 800210c:	6998      	ldr	r0, [r3, #24]
- 800210e:	687b      	ldr	r3, [r7, #4]
- 8002110:	8a9b      	ldrh	r3, [r3, #20]
- 8002112:	2201      	movs	r2, #1
- 8002114:	4619      	mov	r1, r3
- 8002116:	f7fe fd1d 	bl	8000b54 <HAL_GPIO_WritePin>
- 800211a:	e01c      	b.n	8002156 <DRV_Nrf24l01SwitchMode+0x84>
+ 8002176:	687b      	ldr	r3, [r7, #4]
+ 8002178:	6998      	ldr	r0, [r3, #24]
+ 800217a:	687b      	ldr	r3, [r7, #4]
+ 800217c:	8a9b      	ldrh	r3, [r3, #20]
+ 800217e:	2201      	movs	r2, #1
+ 8002180:	4619      	mov	r1, r3
+ 8002182:	f7fe fce7 	bl	8000b54 <HAL_GPIO_WritePin>
+ 8002186:	e01c      	b.n	80021c2 <DRV_Nrf24l01SwitchMode+0x84>
     }
     else if ( mode == NRF24_TRANSMIT_MODE)
- 800211c:	78fb      	ldrb	r3, [r7, #3]
- 800211e:	2b00      	cmp	r3, #0
- 8002120:	d117      	bne.n	8002152 <DRV_Nrf24l01SwitchMode+0x80>
+ 8002188:	78fb      	ldrb	r3, [r7, #3]
+ 800218a:	2b00      	cmp	r3, #0
+ 800218c:	d117      	bne.n	80021be <DRV_Nrf24l01SwitchMode+0x80>
     {
         /* Switch to transmit mode by clearing PRIM_RX bit */
         config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
- 8002122:	2100      	movs	r1, #0
- 8002124:	6878      	ldr	r0, [r7, #4]
- 8002126:	f000 f9e1 	bl	80024ec <DRV_Nrf_ReadRegister>
- 800212a:	4603      	mov	r3, r0
- 800212c:	73bb      	strb	r3, [r7, #14]
+ 800218e:	2100      	movs	r1, #0
+ 8002190:	6878      	ldr	r0, [r7, #4]
+ 8002192:	f000 f9fd 	bl	8002590 <DRV_Nrf_ReadRegister>
+ 8002196:	4603      	mov	r3, r0
+ 8002198:	73bb      	strb	r3, [r7, #14]
         DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config & (~(1 << 0)));
- 800212e:	7bbb      	ldrb	r3, [r7, #14]
- 8002130:	f023 0301 	bic.w	r3, r3, #1
- 8002134:	b2db      	uxtb	r3, r3
- 8002136:	461a      	mov	r2, r3
- 8002138:	2100      	movs	r1, #0
- 800213a:	6878      	ldr	r0, [r7, #4]
- 800213c:	f000 fa0d 	bl	800255a <DRV_Nrf_WriteRegister>
+ 800219a:	7bbb      	ldrb	r3, [r7, #14]
+ 800219c:	f023 0301 	bic.w	r3, r3, #1
+ 80021a0:	b2db      	uxtb	r3, r3
+ 80021a2:	461a      	mov	r2, r3
+ 80021a4:	2100      	movs	r1, #0
+ 80021a6:	6878      	ldr	r0, [r7, #4]
+ 80021a8:	f000 fa29 	bl	80025fe <DRV_Nrf_WriteRegister>
 
         /* CE Pin should be handled during the actual transmit pulse */
         HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
- 8002140:	687b      	ldr	r3, [r7, #4]
- 8002142:	6998      	ldr	r0, [r3, #24]
- 8002144:	687b      	ldr	r3, [r7, #4]
- 8002146:	8a9b      	ldrh	r3, [r3, #20]
- 8002148:	2200      	movs	r2, #0
- 800214a:	4619      	mov	r1, r3
- 800214c:	f7fe fd02 	bl	8000b54 <HAL_GPIO_WritePin>
- 8002150:	e001      	b.n	8002156 <DRV_Nrf24l01SwitchMode+0x84>
+ 80021ac:	687b      	ldr	r3, [r7, #4]
+ 80021ae:	6998      	ldr	r0, [r3, #24]
+ 80021b0:	687b      	ldr	r3, [r7, #4]
+ 80021b2:	8a9b      	ldrh	r3, [r3, #20]
+ 80021b4:	2200      	movs	r2, #0
+ 80021b6:	4619      	mov	r1, r3
+ 80021b8:	f7fe fccc 	bl	8000b54 <HAL_GPIO_WritePin>
+ 80021bc:	e001      	b.n	80021c2 <DRV_Nrf24l01SwitchMode+0x84>
     }
     else
     {
         retval = STD_E_NOT_OK;
- 8002152:	2301      	movs	r3, #1
- 8002154:	73fb      	strb	r3, [r7, #15]
+ 80021be:	2301      	movs	r3, #1
+ 80021c0:	73fb      	strb	r3, [r7, #15]
     }
     return retval;
- 8002156:	7bfb      	ldrb	r3, [r7, #15]
+ 80021c2:	7bfb      	ldrb	r3, [r7, #15]
 }
- 8002158:	4618      	mov	r0, r3
- 800215a:	3710      	adds	r7, #16
- 800215c:	46bd      	mov	sp, r7
- 800215e:	bd80      	pop	{r7, pc}
+ 80021c4:	4618      	mov	r0, r3
+ 80021c6:	3710      	adds	r7, #16
+ 80021c8:	46bd      	mov	sp, r7
+ 80021ca:	bd80      	pop	{r7, pc}
 
-08002160 <DRV_Nrf24l01WritePayloadWithAck>:
+080021cc <DRV_Nrf24l01WritePayloadWithAck>:
 
 void DRV_Nrf24l01WritePayloadWithAck(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t pipeID, uint8_t *sourcePtr)
 {
- 8002160:	b580      	push	{r7, lr}
- 8002162:	b086      	sub	sp, #24
- 8002164:	af00      	add	r7, sp, #0
- 8002166:	60f8      	str	r0, [r7, #12]
- 8002168:	460b      	mov	r3, r1
- 800216a:	607a      	str	r2, [r7, #4]
- 800216c:	72fb      	strb	r3, [r7, #11]
+ 80021cc:	b580      	push	{r7, lr}
+ 80021ce:	b086      	sub	sp, #24
+ 80021d0:	af00      	add	r7, sp, #0
+ 80021d2:	60f8      	str	r0, [r7, #12]
+ 80021d4:	460b      	mov	r3, r1
+ 80021d6:	607a      	str	r2, [r7, #4]
+ 80021d8:	72fb      	strb	r3, [r7, #11]
     uint8_t cmd = 0 ;
- 800216e:	2300      	movs	r3, #0
- 8002170:	75fb      	strb	r3, [r7, #23]
-    /* Move to Standby-I mode */
-    HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
- 8002172:	68fb      	ldr	r3, [r7, #12]
- 8002174:	6998      	ldr	r0, [r3, #24]
- 8002176:	68fb      	ldr	r3, [r7, #12]
- 8002178:	8a9b      	ldrh	r3, [r3, #20]
- 800217a:	2200      	movs	r2, #0
- 800217c:	4619      	mov	r1, r3
- 800217e:	f7fe fce9 	bl	8000b54 <HAL_GPIO_WritePin>
+ 80021da:	2300      	movs	r3, #0
+ 80021dc:	75fb      	strb	r3, [r7, #23]
 
     /* Clear data in TX FIFO */
     cmd = FLUSH_TX;
- 8002182:	23e1      	movs	r3, #225	@ 0xe1
- 8002184:	75fb      	strb	r3, [r7, #23]
+ 80021de:	23e1      	movs	r3, #225	@ 0xe1
+ 80021e0:	75fb      	strb	r3, [r7, #23]
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
- 8002186:	68fb      	ldr	r3, [r7, #12]
- 8002188:	6898      	ldr	r0, [r3, #8]
- 800218a:	68fb      	ldr	r3, [r7, #12]
- 800218c:	889b      	ldrh	r3, [r3, #4]
- 800218e:	2200      	movs	r2, #0
- 8002190:	4619      	mov	r1, r3
- 8002192:	f7fe fcdf 	bl	8000b54 <HAL_GPIO_WritePin>
+ 80021e2:	68fb      	ldr	r3, [r7, #12]
+ 80021e4:	6898      	ldr	r0, [r3, #8]
+ 80021e6:	68fb      	ldr	r3, [r7, #12]
+ 80021e8:	889b      	ldrh	r3, [r3, #4]
+ 80021ea:	2200      	movs	r2, #0
+ 80021ec:	4619      	mov	r1, r3
+ 80021ee:	f7fe fcb1 	bl	8000b54 <HAL_GPIO_WritePin>
     HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10 );
- 8002196:	68fb      	ldr	r3, [r7, #12]
- 8002198:	6818      	ldr	r0, [r3, #0]
- 800219a:	f107 0117 	add.w	r1, r7, #23
- 800219e:	230a      	movs	r3, #10
- 80021a0:	2201      	movs	r2, #1
- 80021a2:	f7ff f96b 	bl	800147c <HAL_SPI_Transmit>
+ 80021f2:	68fb      	ldr	r3, [r7, #12]
+ 80021f4:	6818      	ldr	r0, [r3, #0]
+ 80021f6:	f107 0117 	add.w	r1, r7, #23
+ 80021fa:	230a      	movs	r3, #10
+ 80021fc:	2201      	movs	r2, #1
+ 80021fe:	f7ff f93d 	bl	800147c <HAL_SPI_Transmit>
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
- 80021a6:	68fb      	ldr	r3, [r7, #12]
- 80021a8:	6898      	ldr	r0, [r3, #8]
- 80021aa:	68fb      	ldr	r3, [r7, #12]
- 80021ac:	889b      	ldrh	r3, [r3, #4]
- 80021ae:	2201      	movs	r2, #1
- 80021b0:	4619      	mov	r1, r3
- 80021b2:	f7fe fccf 	bl	8000b54 <HAL_GPIO_WritePin>
+ 8002202:	68fb      	ldr	r3, [r7, #12]
+ 8002204:	6898      	ldr	r0, [r3, #8]
+ 8002206:	68fb      	ldr	r3, [r7, #12]
+ 8002208:	889b      	ldrh	r3, [r3, #4]
+ 800220a:	2201      	movs	r2, #1
+ 800220c:	4619      	mov	r1, r3
+ 800220e:	f7fe fca1 	bl	8000b54 <HAL_GPIO_WritePin>
 
     /* 1. Pull CSN low to start SPI session */
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
- 80021b6:	68fb      	ldr	r3, [r7, #12]
- 80021b8:	6898      	ldr	r0, [r3, #8]
- 80021ba:	68fb      	ldr	r3, [r7, #12]
- 80021bc:	889b      	ldrh	r3, [r3, #4]
- 80021be:	2200      	movs	r2, #0
- 80021c0:	4619      	mov	r1, r3
- 80021c2:	f7fe fcc7 	bl	8000b54 <HAL_GPIO_WritePin>
+ 8002212:	68fb      	ldr	r3, [r7, #12]
+ 8002214:	6898      	ldr	r0, [r3, #8]
+ 8002216:	68fb      	ldr	r3, [r7, #12]
+ 8002218:	889b      	ldrh	r3, [r3, #4]
+ 800221a:	2200      	movs	r2, #0
+ 800221c:	4619      	mov	r1, r3
+ 800221e:	f7fe fc99 	bl	8000b54 <HAL_GPIO_WritePin>
 
     /* 2. Send Write Payload with ACK command */
     cmd = W_ACK_PAYLOAD | pipeID ;
- 80021c6:	7afb      	ldrb	r3, [r7, #11]
- 80021c8:	f063 0357 	orn	r3, r3, #87	@ 0x57
- 80021cc:	b2db      	uxtb	r3, r3
- 80021ce:	75fb      	strb	r3, [r7, #23]
+ 8002222:	7afb      	ldrb	r3, [r7, #11]
+ 8002224:	f063 0357 	orn	r3, r3, #87	@ 0x57
+ 8002228:	b2db      	uxtb	r3, r3
+ 800222a:	75fb      	strb	r3, [r7, #23]
     HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
- 80021d0:	68fb      	ldr	r3, [r7, #12]
- 80021d2:	6818      	ldr	r0, [r3, #0]
- 80021d4:	f107 0117 	add.w	r1, r7, #23
- 80021d8:	230a      	movs	r3, #10
- 80021da:	2201      	movs	r2, #1
- 80021dc:	f7ff f94e 	bl	800147c <HAL_SPI_Transmit>
+ 800222c:	68fb      	ldr	r3, [r7, #12]
+ 800222e:	6818      	ldr	r0, [r3, #0]
+ 8002230:	f107 0117 	add.w	r1, r7, #23
+ 8002234:	230a      	movs	r3, #10
+ 8002236:	2201      	movs	r2, #1
+ 8002238:	f7ff f920 	bl	800147c <HAL_SPI_Transmit>
     HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, sourcePtr, LENGTH, 10);
- 80021e0:	68fb      	ldr	r3, [r7, #12]
- 80021e2:	6818      	ldr	r0, [r3, #0]
- 80021e4:	230a      	movs	r3, #10
- 80021e6:	2220      	movs	r2, #32
- 80021e8:	6879      	ldr	r1, [r7, #4]
- 80021ea:	f7ff f947 	bl	800147c <HAL_SPI_Transmit>
+ 800223c:	68fb      	ldr	r3, [r7, #12]
+ 800223e:	6818      	ldr	r0, [r3, #0]
+ 8002240:	230a      	movs	r3, #10
+ 8002242:	2220      	movs	r2, #32
+ 8002244:	6879      	ldr	r1, [r7, #4]
+ 8002246:	f7ff f919 	bl	800147c <HAL_SPI_Transmit>
 
     /* 3. Pull CSN High and stay in Standby */
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
- 80021ee:	68fb      	ldr	r3, [r7, #12]
- 80021f0:	6898      	ldr	r0, [r3, #8]
- 80021f2:	68fb      	ldr	r3, [r7, #12]
- 80021f4:	889b      	ldrh	r3, [r3, #4]
- 80021f6:	2201      	movs	r2, #1
- 80021f8:	4619      	mov	r1, r3
- 80021fa:	f7fe fcab 	bl	8000b54 <HAL_GPIO_WritePin>
+ 800224a:	68fb      	ldr	r3, [r7, #12]
+ 800224c:	6898      	ldr	r0, [r3, #8]
+ 800224e:	68fb      	ldr	r3, [r7, #12]
+ 8002250:	889b      	ldrh	r3, [r3, #4]
+ 8002252:	2201      	movs	r2, #1
+ 8002254:	4619      	mov	r1, r3
+ 8002256:	f7fe fc7d 	bl	8000b54 <HAL_GPIO_WritePin>
 }
- 80021fe:	bf00      	nop
- 8002200:	3718      	adds	r7, #24
- 8002202:	46bd      	mov	sp, r7
- 8002204:	bd80      	pop	{r7, pc}
+ 800225a:	bf00      	nop
+ 800225c:	3718      	adds	r7, #24
+ 800225e:	46bd      	mov	sp, r7
+ 8002260:	bd80      	pop	{r7, pc}
 
-08002206 <DRV_Nrf24l01Receive>:
+08002262 <DRV_Nrf24l01Receive>:
 
 NRF24L01_ReturnType DRV_Nrf24l01Receive(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t* pipeID, uint8_t *destinationPtr, uint32_t timeout)
 {
- 8002206:	b580      	push	{r7, lr}
- 8002208:	b088      	sub	sp, #32
- 800220a:	af00      	add	r7, sp, #0
- 800220c:	60f8      	str	r0, [r7, #12]
- 800220e:	60b9      	str	r1, [r7, #8]
- 8002210:	607a      	str	r2, [r7, #4]
- 8002212:	603b      	str	r3, [r7, #0]
-    uint8_t config      = 0;
- 8002214:	2300      	movs	r3, #0
- 8002216:	75bb      	strb	r3, [r7, #22]
+ 8002262:	b580      	push	{r7, lr}
+ 8002264:	b088      	sub	sp, #32
+ 8002266:	af00      	add	r7, sp, #0
+ 8002268:	60f8      	str	r0, [r7, #12]
+ 800226a:	60b9      	str	r1, [r7, #8]
+ 800226c:	607a      	str	r2, [r7, #4]
+ 800226e:	603b      	str	r3, [r7, #0]
     uint8_t status      = 0;
- 8002218:	2300      	movs	r3, #0
- 800221a:	77fb      	strb	r3, [r7, #31]
+ 8002270:	2300      	movs	r3, #0
+ 8002272:	76bb      	strb	r3, [r7, #26]
     uint8_t fifo_status = 0;
- 800221c:	2300      	movs	r3, #0
- 800221e:	757b      	strb	r3, [r7, #21]
+ 8002274:	2300      	movs	r3, #0
+ 8002276:	767b      	strb	r3, [r7, #25]
     uint8_t cmd         = 0 ;
- 8002220:	2300      	movs	r3, #0
- 8002222:	753b      	strb	r3, [r7, #20]
+ 8002278:	2300      	movs	r3, #0
+ 800227a:	763b      	strb	r3, [r7, #24]
     uint32_t timeoutCount = timeout;
- 8002224:	683b      	ldr	r3, [r7, #0]
- 8002226:	61bb      	str	r3, [r7, #24]
+ 800227c:	683b      	ldr	r3, [r7, #0]
+ 800227e:	61fb      	str	r3, [r7, #28]
     NRF24L01_ReturnType retval = STD_E_OK;
- 8002228:	2300      	movs	r3, #0
- 800222a:	75fb      	strb	r3, [r7, #23]
+ 8002280:	2300      	movs	r3, #0
+ 8002282:	76fb      	strb	r3, [r7, #27]
     uint8_t length = 0;
- 800222c:	2300      	movs	r3, #0
- 800222e:	74fb      	strb	r3, [r7, #19]
+ 8002284:	2300      	movs	r3, #0
+ 8002286:	75fb      	strb	r3, [r7, #23]
 
     NRF24L01Instance->State = NRF24_BUSY;
- 8002230:	68fb      	ldr	r3, [r7, #12]
- 8002232:	2203      	movs	r2, #3
- 8002234:	f883 203d 	strb.w	r2, [r3, #61]	@ 0x3d
-
-    /* 1. Switch to RX mode (PRIM_RX = 1) */
-    config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
- 8002238:	2100      	movs	r1, #0
- 800223a:	68f8      	ldr	r0, [r7, #12]
- 800223c:	f000 f956 	bl	80024ec <DRV_Nrf_ReadRegister>
- 8002240:	4603      	mov	r3, r0
- 8002242:	75bb      	strb	r3, [r7, #22]
-    DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config | (1 << 0));
- 8002244:	7dbb      	ldrb	r3, [r7, #22]
- 8002246:	f043 0301 	orr.w	r3, r3, #1
- 800224a:	b2db      	uxtb	r3, r3
- 800224c:	461a      	mov	r2, r3
- 800224e:	2100      	movs	r1, #0
- 8002250:	68f8      	ldr	r0, [r7, #12]
- 8002252:	f000 f982 	bl	800255a <DRV_Nrf_WriteRegister>
-
-    /* 2. Activate CE to start listening */
-    HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_SET);
- 8002256:	68fb      	ldr	r3, [r7, #12]
- 8002258:	6998      	ldr	r0, [r3, #24]
- 800225a:	68fb      	ldr	r3, [r7, #12]
- 800225c:	8a9b      	ldrh	r3, [r3, #20]
- 800225e:	2201      	movs	r2, #1
- 8002260:	4619      	mov	r1, r3
- 8002262:	f7fe fc77 	bl	8000b54 <HAL_GPIO_WritePin>
+ 8002288:	68fb      	ldr	r3, [r7, #12]
+ 800228a:	2203      	movs	r2, #3
+ 800228c:	f883 203d 	strb.w	r2, [r3, #61]	@ 0x3d
 
     /* 3. Wait for data or timeout */
     if ( FALSE == NRF24L01Instance->InterruptMode)
- 8002266:	68fb      	ldr	r3, [r7, #12]
- 8002268:	7f1b      	ldrb	r3, [r3, #28]
- 800226a:	2b00      	cmp	r3, #0
- 800226c:	d111      	bne.n	8002292 <DRV_Nrf24l01Receive+0x8c>
+ 8002290:	68fb      	ldr	r3, [r7, #12]
+ 8002292:	7f1b      	ldrb	r3, [r3, #28]
+ 8002294:	2b00      	cmp	r3, #0
+ 8002296:	d16f      	bne.n	8002378 <DRV_Nrf24l01Receive+0x116>
     {
-        do {
+        do
+        {
             status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
- 800226e:	2107      	movs	r1, #7
- 8002270:	68f8      	ldr	r0, [r7, #12]
- 8002272:	f000 f93b 	bl	80024ec <DRV_Nrf_ReadRegister>
- 8002276:	4603      	mov	r3, r0
- 8002278:	77fb      	strb	r3, [r7, #31]
+ 8002298:	2107      	movs	r1, #7
+ 800229a:	68f8      	ldr	r0, [r7, #12]
+ 800229c:	f000 f978 	bl	8002590 <DRV_Nrf_ReadRegister>
+ 80022a0:	4603      	mov	r3, r0
+ 80022a2:	76bb      	strb	r3, [r7, #26]
             timeoutCount--;
- 800227a:	69bb      	ldr	r3, [r7, #24]
- 800227c:	3b01      	subs	r3, #1
- 800227e:	61bb      	str	r3, [r7, #24]
+ 80022a4:	69fb      	ldr	r3, [r7, #28]
+ 80022a6:	3b01      	subs	r3, #1
+ 80022a8:	61fb      	str	r3, [r7, #28]
         } while (!(status & (1 << 6)) && (timeoutCount > 0)); /* Bit 6 is RX_DR */
- 8002280:	7ffb      	ldrb	r3, [r7, #31]
- 8002282:	f003 0340 	and.w	r3, r3, #64	@ 0x40
- 8002286:	2b00      	cmp	r3, #0
- 8002288:	d109      	bne.n	800229e <DRV_Nrf24l01Receive+0x98>
- 800228a:	69bb      	ldr	r3, [r7, #24]
- 800228c:	2b00      	cmp	r3, #0
- 800228e:	d1ee      	bne.n	800226e <DRV_Nrf24l01Receive+0x68>
- 8002290:	e005      	b.n	800229e <DRV_Nrf24l01Receive+0x98>
-    }
-    else
-    {
-        status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
- 8002292:	2107      	movs	r1, #7
- 8002294:	68f8      	ldr	r0, [r7, #12]
- 8002296:	f000 f929 	bl	80024ec <DRV_Nrf_ReadRegister>
- 800229a:	4603      	mov	r3, r0
- 800229c:	77fb      	strb	r3, [r7, #31]
-    }
-    DRV_Nrf24l01GetStatus(NRF24L01Instance);
- 800229e:	68f8      	ldr	r0, [r7, #12]
- 80022a0:	f7ff feef 	bl	8002082 <DRV_Nrf24l01GetStatus>
+ 80022aa:	7ebb      	ldrb	r3, [r7, #26]
+ 80022ac:	f003 0340 	and.w	r3, r3, #64	@ 0x40
+ 80022b0:	2b00      	cmp	r3, #0
+ 80022b2:	d102      	bne.n	80022ba <DRV_Nrf24l01Receive+0x58>
+ 80022b4:	69fb      	ldr	r3, [r7, #28]
+ 80022b6:	2b00      	cmp	r3, #0
+ 80022b8:	d1ee      	bne.n	8002298 <DRV_Nrf24l01Receive+0x36>
+        /* 4. If data received (RX_DR = 1) */
+        if (status & (1 << 6))
+ 80022ba:	7ebb      	ldrb	r3, [r7, #26]
+ 80022bc:	f003 0340 	and.w	r3, r3, #64	@ 0x40
+ 80022c0:	2b00      	cmp	r3, #0
+ 80022c2:	d04e      	beq.n	8002362 <DRV_Nrf24l01Receive+0x100>
+        {
+			/* Identify source Pipe ID */
+			(*pipeID) = (status >> 1) & 0x07;
+ 80022c4:	7ebb      	ldrb	r3, [r7, #26]
+ 80022c6:	085b      	lsrs	r3, r3, #1
+ 80022c8:	b2db      	uxtb	r3, r3
+ 80022ca:	f003 0307 	and.w	r3, r3, #7
+ 80022ce:	b2da      	uxtb	r2, r3
+ 80022d0:	68bb      	ldr	r3, [r7, #8]
+ 80022d2:	701a      	strb	r2, [r3, #0]
 
-    /* 4. If data received (RX_DR = 1) */
-    if (status & (1 << 6)) {
- 80022a4:	7ffb      	ldrb	r3, [r7, #31]
- 80022a6:	f003 0340 	and.w	r3, r3, #64	@ 0x40
- 80022aa:	2b00      	cmp	r3, #0
- 80022ac:	d04e      	beq.n	800234c <DRV_Nrf24l01Receive+0x146>
-        /* Identify source Pipe ID */
-        (*pipeID) = (status >> 1) & 0x07;
- 80022ae:	7ffb      	ldrb	r3, [r7, #31]
- 80022b0:	085b      	lsrs	r3, r3, #1
- 80022b2:	b2db      	uxtb	r3, r3
- 80022b4:	f003 0307 	and.w	r3, r3, #7
- 80022b8:	b2da      	uxtb	r2, r3
- 80022ba:	68bb      	ldr	r3, [r7, #8]
- 80022bc:	701a      	strb	r2, [r3, #0]
+			/* Empty the FIFO */
+			do {
+				if ( NRF24L01Instance->DynamicPayloadEnable == TRUE)
+ 80022d4:	68fb      	ldr	r3, [r7, #12]
+ 80022d6:	7fdb      	ldrb	r3, [r3, #31]
+ 80022d8:	2b01      	cmp	r3, #1
+ 80022da:	d121      	bne.n	8002320 <DRV_Nrf24l01Receive+0xbe>
+				{
+					HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+ 80022dc:	68fb      	ldr	r3, [r7, #12]
+ 80022de:	6898      	ldr	r0, [r3, #8]
+ 80022e0:	68fb      	ldr	r3, [r7, #12]
+ 80022e2:	889b      	ldrh	r3, [r3, #4]
+ 80022e4:	2200      	movs	r2, #0
+ 80022e6:	4619      	mov	r1, r3
+ 80022e8:	f7fe fc34 	bl	8000b54 <HAL_GPIO_WritePin>
+					cmd = R_RX_PL_WID;
+ 80022ec:	2360      	movs	r3, #96	@ 0x60
+ 80022ee:	763b      	strb	r3, [r7, #24]
+					HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+ 80022f0:	68fb      	ldr	r3, [r7, #12]
+ 80022f2:	6818      	ldr	r0, [r3, #0]
+ 80022f4:	f107 0118 	add.w	r1, r7, #24
+ 80022f8:	230a      	movs	r3, #10
+ 80022fa:	2201      	movs	r2, #1
+ 80022fc:	f7ff f8be 	bl	800147c <HAL_SPI_Transmit>
+					HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &length, 1, 100);
+ 8002300:	68fb      	ldr	r3, [r7, #12]
+ 8002302:	6818      	ldr	r0, [r3, #0]
+ 8002304:	f107 0117 	add.w	r1, r7, #23
+ 8002308:	2364      	movs	r3, #100	@ 0x64
+ 800230a:	2201      	movs	r2, #1
+ 800230c:	f7ff f9fa 	bl	8001704 <HAL_SPI_Receive>
+					HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+ 8002310:	68fb      	ldr	r3, [r7, #12]
+ 8002312:	6898      	ldr	r0, [r3, #8]
+ 8002314:	68fb      	ldr	r3, [r7, #12]
+ 8002316:	889b      	ldrh	r3, [r3, #4]
+ 8002318:	2201      	movs	r2, #1
+ 800231a:	4619      	mov	r1, r3
+ 800231c:	f7fe fc1a 	bl	8000b54 <HAL_GPIO_WritePin>
+				}
 
-        /* Empty the FIFO */
-        do {
-            if ( NRF24L01Instance->DynamicPayloadEnable == TRUE)
- 80022be:	68fb      	ldr	r3, [r7, #12]
- 80022c0:	7fdb      	ldrb	r3, [r3, #31]
- 80022c2:	2b01      	cmp	r3, #1
- 80022c4:	d121      	bne.n	800230a <DRV_Nrf24l01Receive+0x104>
-            {
-                HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
- 80022c6:	68fb      	ldr	r3, [r7, #12]
- 80022c8:	6898      	ldr	r0, [r3, #8]
- 80022ca:	68fb      	ldr	r3, [r7, #12]
- 80022cc:	889b      	ldrh	r3, [r3, #4]
- 80022ce:	2200      	movs	r2, #0
- 80022d0:	4619      	mov	r1, r3
- 80022d2:	f7fe fc3f 	bl	8000b54 <HAL_GPIO_WritePin>
-                cmd = R_RX_PL_WID;
- 80022d6:	2360      	movs	r3, #96	@ 0x60
- 80022d8:	753b      	strb	r3, [r7, #20]
-                HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
- 80022da:	68fb      	ldr	r3, [r7, #12]
- 80022dc:	6818      	ldr	r0, [r3, #0]
- 80022de:	f107 0114 	add.w	r1, r7, #20
- 80022e2:	230a      	movs	r3, #10
- 80022e4:	2201      	movs	r2, #1
- 80022e6:	f7ff f8c9 	bl	800147c <HAL_SPI_Transmit>
-                HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &length, 1, 100);
- 80022ea:	68fb      	ldr	r3, [r7, #12]
- 80022ec:	6818      	ldr	r0, [r3, #0]
- 80022ee:	f107 0113 	add.w	r1, r7, #19
- 80022f2:	2364      	movs	r3, #100	@ 0x64
- 80022f4:	2201      	movs	r2, #1
- 80022f6:	f7ff fa05 	bl	8001704 <HAL_SPI_Receive>
-                HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
- 80022fa:	68fb      	ldr	r3, [r7, #12]
- 80022fc:	6898      	ldr	r0, [r3, #8]
- 80022fe:	68fb      	ldr	r3, [r7, #12]
- 8002300:	889b      	ldrh	r3, [r3, #4]
- 8002302:	2201      	movs	r2, #1
- 8002304:	4619      	mov	r1, r3
- 8002306:	f7fe fc25 	bl	8000b54 <HAL_GPIO_WritePin>
-            }
+				/* Read Payload from the top of the FIFO */
+				DRV_Nrf24L01ReadPayload(NRF24L01Instance, destinationPtr, length);
+ 8002320:	7dfb      	ldrb	r3, [r7, #23]
+ 8002322:	461a      	mov	r2, r3
+ 8002324:	6879      	ldr	r1, [r7, #4]
+ 8002326:	68f8      	ldr	r0, [r7, #12]
+ 8002328:	f000 f999 	bl	800265e <DRV_Nrf24L01ReadPayload>
 
-            /* Read Payload from the top of the FIFO */
-            DRV_Nrf24L01ReadPayload(NRF24L01Instance, destinationPtr, length);
- 800230a:	7cfb      	ldrb	r3, [r7, #19]
- 800230c:	461a      	mov	r2, r3
- 800230e:	6879      	ldr	r1, [r7, #4]
- 8002310:	68f8      	ldr	r0, [r7, #12]
- 8002312:	f000 f952 	bl	80025ba <DRV_Nrf24L01ReadPayload>
+				/* Clear RX_DR flag to allow next packet processing */
+				DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 6));
+ 800232c:	2240      	movs	r2, #64	@ 0x40
+ 800232e:	2107      	movs	r1, #7
+ 8002330:	68f8      	ldr	r0, [r7, #12]
+ 8002332:	f000 f964 	bl	80025fe <DRV_Nrf_WriteRegister>
 
-            /* Clear RX_DR flag to allow next packet processing */
-            DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 6));
- 8002316:	2240      	movs	r2, #64	@ 0x40
- 8002318:	2107      	movs	r1, #7
- 800231a:	68f8      	ldr	r0, [r7, #12]
- 800231c:	f000 f91d 	bl	800255a <DRV_Nrf_WriteRegister>
+				/* Check if FIFO still contains data (RX_EMPTY bit) */
+				fifo_status = DRV_Nrf_ReadRegister(NRF24L01Instance, FIFO_STATUS);
+ 8002336:	2117      	movs	r1, #23
+ 8002338:	68f8      	ldr	r0, [r7, #12]
+ 800233a:	f000 f929 	bl	8002590 <DRV_Nrf_ReadRegister>
+ 800233e:	4603      	mov	r3, r0
+ 8002340:	767b      	strb	r3, [r7, #25]
 
-            /* Check if FIFO still contains data (RX_EMPTY bit) */
-            fifo_status = DRV_Nrf_ReadRegister(NRF24L01Instance, FIFO_STATUS);
- 8002320:	2117      	movs	r1, #23
- 8002322:	68f8      	ldr	r0, [r7, #12]
- 8002324:	f000 f8e2 	bl	80024ec <DRV_Nrf_ReadRegister>
- 8002328:	4603      	mov	r3, r0
- 800232a:	757b      	strb	r3, [r7, #21]
+			} while (!(fifo_status & (1 << 0)));
+ 8002342:	7e7b      	ldrb	r3, [r7, #25]
+ 8002344:	f003 0301 	and.w	r3, r3, #1
+ 8002348:	2b00      	cmp	r3, #0
+ 800234a:	d0c3      	beq.n	80022d4 <DRV_Nrf24l01Receive+0x72>
 
-        } while (!(fifo_status & (1 << 0)));
- 800232c:	7d7b      	ldrb	r3, [r7, #21]
- 800232e:	f003 0301 	and.w	r3, r3, #1
- 8002332:	2b00      	cmp	r3, #0
- 8002334:	d0c3      	beq.n	80022be <DRV_Nrf24l01Receive+0xb8>
-
-        /* Pull CE low (Standby-I) after processing */
-        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
- 8002336:	68fb      	ldr	r3, [r7, #12]
- 8002338:	6998      	ldr	r0, [r3, #24]
- 800233a:	68fb      	ldr	r3, [r7, #12]
- 800233c:	8a9b      	ldrh	r3, [r3, #20]
- 800233e:	2200      	movs	r2, #0
- 8002340:	4619      	mov	r1, r3
- 8002342:	f7fe fc07 	bl	8000b54 <HAL_GPIO_WritePin>
-        retval = STD_E_OK;
- 8002346:	2300      	movs	r3, #0
- 8002348:	75fb      	strb	r3, [r7, #23]
- 800234a:	e009      	b.n	8002360 <DRV_Nrf24l01Receive+0x15a>
-    }
-    else
-    {
-        /* Timeout or no data */
-        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
+			/* Pull CE low (Standby-I) after processing */
+			HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
  800234c:	68fb      	ldr	r3, [r7, #12]
  800234e:	6998      	ldr	r0, [r3, #24]
  8002350:	68fb      	ldr	r3, [r7, #12]
@@ -6246,516 +6248,618 @@ NRF24L01_ReturnType DRV_Nrf24l01Receive(NRF24L01_HandleTypedef* NRF24L01Instance
  8002354:	2200      	movs	r2, #0
  8002356:	4619      	mov	r1, r3
  8002358:	f7fe fbfc 	bl	8000b54 <HAL_GPIO_WritePin>
-        retval = STD_E_NOT_OK;
- 800235c:	2301      	movs	r3, #1
- 800235e:	75fb      	strb	r3, [r7, #23]
+			retval = STD_E_OK;
+ 800235c:	2300      	movs	r3, #0
+ 800235e:	76fb      	strb	r3, [r7, #27]
+ 8002360:	e050      	b.n	8002404 <DRV_Nrf24l01Receive+0x1a2>
+		}
+		else
+		{
+			/* Timeout or no data */
+			HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
+ 8002362:	68fb      	ldr	r3, [r7, #12]
+ 8002364:	6998      	ldr	r0, [r3, #24]
+ 8002366:	68fb      	ldr	r3, [r7, #12]
+ 8002368:	8a9b      	ldrh	r3, [r3, #20]
+ 800236a:	2200      	movs	r2, #0
+ 800236c:	4619      	mov	r1, r3
+ 800236e:	f7fe fbf1 	bl	8000b54 <HAL_GPIO_WritePin>
+			retval = STD_E_NOT_OK;
+ 8002372:	2301      	movs	r3, #1
+ 8002374:	76fb      	strb	r3, [r7, #27]
+ 8002376:	e045      	b.n	8002404 <DRV_Nrf24l01Receive+0x1a2>
+		}
+    }
+    else
+    {
+    	status = DRV_Nrf24l01GetStatus(NRF24L01Instance);
+ 8002378:	68f8      	ldr	r0, [r7, #12]
+ 800237a:	f7ff fe82 	bl	8002082 <DRV_Nrf24l01GetStatus>
+ 800237e:	4603      	mov	r3, r0
+ 8002380:	76bb      	strb	r3, [r7, #26]
+		/* Identify source Pipe ID */
+		(*pipeID) = (status >> 1) & 0x07;
+ 8002382:	7ebb      	ldrb	r3, [r7, #26]
+ 8002384:	085b      	lsrs	r3, r3, #1
+ 8002386:	b2db      	uxtb	r3, r3
+ 8002388:	f003 0307 	and.w	r3, r3, #7
+ 800238c:	b2da      	uxtb	r2, r3
+ 800238e:	68bb      	ldr	r3, [r7, #8]
+ 8002390:	701a      	strb	r2, [r3, #0]
+
+		/* Empty the FIFO */
+		do {
+			if ( NRF24L01Instance->DynamicPayloadEnable == TRUE)
+ 8002392:	68fb      	ldr	r3, [r7, #12]
+ 8002394:	7fdb      	ldrb	r3, [r3, #31]
+ 8002396:	2b01      	cmp	r3, #1
+ 8002398:	d121      	bne.n	80023de <DRV_Nrf24l01Receive+0x17c>
+			{
+				HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+ 800239a:	68fb      	ldr	r3, [r7, #12]
+ 800239c:	6898      	ldr	r0, [r3, #8]
+ 800239e:	68fb      	ldr	r3, [r7, #12]
+ 80023a0:	889b      	ldrh	r3, [r3, #4]
+ 80023a2:	2200      	movs	r2, #0
+ 80023a4:	4619      	mov	r1, r3
+ 80023a6:	f7fe fbd5 	bl	8000b54 <HAL_GPIO_WritePin>
+				cmd = R_RX_PL_WID;
+ 80023aa:	2360      	movs	r3, #96	@ 0x60
+ 80023ac:	763b      	strb	r3, [r7, #24]
+				HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+ 80023ae:	68fb      	ldr	r3, [r7, #12]
+ 80023b0:	6818      	ldr	r0, [r3, #0]
+ 80023b2:	f107 0118 	add.w	r1, r7, #24
+ 80023b6:	230a      	movs	r3, #10
+ 80023b8:	2201      	movs	r2, #1
+ 80023ba:	f7ff f85f 	bl	800147c <HAL_SPI_Transmit>
+				HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &length, 1, 100);
+ 80023be:	68fb      	ldr	r3, [r7, #12]
+ 80023c0:	6818      	ldr	r0, [r3, #0]
+ 80023c2:	f107 0117 	add.w	r1, r7, #23
+ 80023c6:	2364      	movs	r3, #100	@ 0x64
+ 80023c8:	2201      	movs	r2, #1
+ 80023ca:	f7ff f99b 	bl	8001704 <HAL_SPI_Receive>
+				HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+ 80023ce:	68fb      	ldr	r3, [r7, #12]
+ 80023d0:	6898      	ldr	r0, [r3, #8]
+ 80023d2:	68fb      	ldr	r3, [r7, #12]
+ 80023d4:	889b      	ldrh	r3, [r3, #4]
+ 80023d6:	2201      	movs	r2, #1
+ 80023d8:	4619      	mov	r1, r3
+ 80023da:	f7fe fbbb 	bl	8000b54 <HAL_GPIO_WritePin>
+			}
+
+			/* Read Payload from the top of the FIFO */
+			DRV_Nrf24L01ReadPayload(NRF24L01Instance, destinationPtr, length);
+ 80023de:	7dfb      	ldrb	r3, [r7, #23]
+ 80023e0:	461a      	mov	r2, r3
+ 80023e2:	6879      	ldr	r1, [r7, #4]
+ 80023e4:	68f8      	ldr	r0, [r7, #12]
+ 80023e6:	f000 f93a 	bl	800265e <DRV_Nrf24L01ReadPayload>
+			/* Check if FIFO still contains data (RX_EMPTY bit) */
+			fifo_status = DRV_Nrf_ReadRegister(NRF24L01Instance, FIFO_STATUS);
+ 80023ea:	2117      	movs	r1, #23
+ 80023ec:	68f8      	ldr	r0, [r7, #12]
+ 80023ee:	f000 f8cf 	bl	8002590 <DRV_Nrf_ReadRegister>
+ 80023f2:	4603      	mov	r3, r0
+ 80023f4:	767b      	strb	r3, [r7, #25]
+
+		} while (!(fifo_status & (1 << 0)));
+ 80023f6:	7e7b      	ldrb	r3, [r7, #25]
+ 80023f8:	f003 0301 	and.w	r3, r3, #1
+ 80023fc:	2b00      	cmp	r3, #0
+ 80023fe:	d0c8      	beq.n	8002392 <DRV_Nrf24l01Receive+0x130>
+		retval = STD_E_OK;
+ 8002400:	2300      	movs	r3, #0
+ 8002402:	76fb      	strb	r3, [r7, #27]
     }
 
     NRF24L01Instance->State = NRF24_IDEL;
- 8002360:	68fb      	ldr	r3, [r7, #12]
- 8002362:	2202      	movs	r2, #2
- 8002364:	f883 203d 	strb.w	r2, [r3, #61]	@ 0x3d
+ 8002404:	68fb      	ldr	r3, [r7, #12]
+ 8002406:	2202      	movs	r2, #2
+ 8002408:	f883 203d 	strb.w	r2, [r3, #61]	@ 0x3d
     return retval;
- 8002368:	7dfb      	ldrb	r3, [r7, #23]
+ 800240c:	7efb      	ldrb	r3, [r7, #27]
 }
- 800236a:	4618      	mov	r0, r3
- 800236c:	3720      	adds	r7, #32
- 800236e:	46bd      	mov	sp, r7
- 8002370:	bd80      	pop	{r7, pc}
+ 800240e:	4618      	mov	r0, r3
+ 8002410:	3720      	adds	r7, #32
+ 8002412:	46bd      	mov	sp, r7
+ 8002414:	bd80      	pop	{r7, pc}
 
-08002372 <DRV_Nrf24l01SetDataRate>:
+08002416 <DRV_Nrf24l01SetDataRate>:
     }
     return retval;
 }
 
 NRF24L01_ReturnType DRV_Nrf24l01SetDataRate(NRF24L01_HandleTypedef* NRF24L01Instance, NRF24L01_AirDataDateTypedef speed)
 {
- 8002372:	b580      	push	{r7, lr}
- 8002374:	b084      	sub	sp, #16
- 8002376:	af00      	add	r7, sp, #0
- 8002378:	6078      	str	r0, [r7, #4]
- 800237a:	460b      	mov	r3, r1
- 800237c:	70fb      	strb	r3, [r7, #3]
+ 8002416:	b580      	push	{r7, lr}
+ 8002418:	b084      	sub	sp, #16
+ 800241a:	af00      	add	r7, sp, #0
+ 800241c:	6078      	str	r0, [r7, #4]
+ 800241e:	460b      	mov	r3, r1
+ 8002420:	70fb      	strb	r3, [r7, #3]
     uint8_t rf_setup = DRV_Nrf_ReadRegister(NRF24L01Instance, RF_SETUP);
- 800237e:	2106      	movs	r1, #6
- 8002380:	6878      	ldr	r0, [r7, #4]
- 8002382:	f000 f8b3 	bl	80024ec <DRV_Nrf_ReadRegister>
- 8002386:	4603      	mov	r3, r0
- 8002388:	73fb      	strb	r3, [r7, #15]
+ 8002422:	2106      	movs	r1, #6
+ 8002424:	6878      	ldr	r0, [r7, #4]
+ 8002426:	f000 f8b3 	bl	8002590 <DRV_Nrf_ReadRegister>
+ 800242a:	4603      	mov	r3, r0
+ 800242c:	73fb      	strb	r3, [r7, #15]
 
     /* Data rate is controlled by bit 3 (RF_DR_HIGH) */
     if (speed == NRF24L01_2MBPS)
- 800238a:	78fb      	ldrb	r3, [r7, #3]
- 800238c:	2b01      	cmp	r3, #1
- 800238e:	d104      	bne.n	800239a <DRV_Nrf24l01SetDataRate+0x28>
+ 800242e:	78fb      	ldrb	r3, [r7, #3]
+ 8002430:	2b01      	cmp	r3, #1
+ 8002432:	d104      	bne.n	800243e <DRV_Nrf24l01SetDataRate+0x28>
     {
         rf_setup |= (1 << 3);
- 8002390:	7bfb      	ldrb	r3, [r7, #15]
- 8002392:	f043 0308 	orr.w	r3, r3, #8
- 8002396:	73fb      	strb	r3, [r7, #15]
- 8002398:	e003      	b.n	80023a2 <DRV_Nrf24l01SetDataRate+0x30>
+ 8002434:	7bfb      	ldrb	r3, [r7, #15]
+ 8002436:	f043 0308 	orr.w	r3, r3, #8
+ 800243a:	73fb      	strb	r3, [r7, #15]
+ 800243c:	e003      	b.n	8002446 <DRV_Nrf24l01SetDataRate+0x30>
     }
     else
     {
         rf_setup &= ~(1 << 3);
- 800239a:	7bfb      	ldrb	r3, [r7, #15]
- 800239c:	f023 0308 	bic.w	r3, r3, #8
- 80023a0:	73fb      	strb	r3, [r7, #15]
+ 800243e:	7bfb      	ldrb	r3, [r7, #15]
+ 8002440:	f023 0308 	bic.w	r3, r3, #8
+ 8002444:	73fb      	strb	r3, [r7, #15]
     }
 
     DRV_Nrf_WriteRegister(NRF24L01Instance, RF_SETUP, rf_setup);
- 80023a2:	7bfb      	ldrb	r3, [r7, #15]
- 80023a4:	461a      	mov	r2, r3
- 80023a6:	2106      	movs	r1, #6
- 80023a8:	6878      	ldr	r0, [r7, #4]
- 80023aa:	f000 f8d6 	bl	800255a <DRV_Nrf_WriteRegister>
+ 8002446:	7bfb      	ldrb	r3, [r7, #15]
+ 8002448:	461a      	mov	r2, r3
+ 800244a:	2106      	movs	r1, #6
+ 800244c:	6878      	ldr	r0, [r7, #4]
+ 800244e:	f000 f8d6 	bl	80025fe <DRV_Nrf_WriteRegister>
 
     /* Verify if write was successful */
     if (DRV_Nrf_ReadRegister(NRF24L01Instance, RF_SETUP) == rf_setup) return STD_E_OK;
- 80023ae:	2106      	movs	r1, #6
- 80023b0:	6878      	ldr	r0, [r7, #4]
- 80023b2:	f000 f89b 	bl	80024ec <DRV_Nrf_ReadRegister>
- 80023b6:	4603      	mov	r3, r0
- 80023b8:	461a      	mov	r2, r3
- 80023ba:	7bfb      	ldrb	r3, [r7, #15]
- 80023bc:	4293      	cmp	r3, r2
- 80023be:	d101      	bne.n	80023c4 <DRV_Nrf24l01SetDataRate+0x52>
- 80023c0:	2300      	movs	r3, #0
- 80023c2:	e000      	b.n	80023c6 <DRV_Nrf24l01SetDataRate+0x54>
+ 8002452:	2106      	movs	r1, #6
+ 8002454:	6878      	ldr	r0, [r7, #4]
+ 8002456:	f000 f89b 	bl	8002590 <DRV_Nrf_ReadRegister>
+ 800245a:	4603      	mov	r3, r0
+ 800245c:	461a      	mov	r2, r3
+ 800245e:	7bfb      	ldrb	r3, [r7, #15]
+ 8002460:	4293      	cmp	r3, r2
+ 8002462:	d101      	bne.n	8002468 <DRV_Nrf24l01SetDataRate+0x52>
+ 8002464:	2300      	movs	r3, #0
+ 8002466:	e000      	b.n	800246a <DRV_Nrf24l01SetDataRate+0x54>
     return STD_E_NOT_OK;
- 80023c4:	2301      	movs	r3, #1
+ 8002468:	2301      	movs	r3, #1
 }
- 80023c6:	4618      	mov	r0, r3
- 80023c8:	3710      	adds	r7, #16
- 80023ca:	46bd      	mov	sp, r7
- 80023cc:	bd80      	pop	{r7, pc}
+ 800246a:	4618      	mov	r0, r3
+ 800246c:	3710      	adds	r7, #16
+ 800246e:	46bd      	mov	sp, r7
+ 8002470:	bd80      	pop	{r7, pc}
 
-080023ce <DRV_Nrf24l01SetPALevel>:
+08002472 <DRV_Nrf24l01SetPALevel>:
 
 NRF24L01_ReturnType DRV_Nrf24l01SetPALevel(NRF24L01_HandleTypedef* NRF24L01Instance, NRF24L01_OutputPowerTypedef level)
 {
- 80023ce:	b580      	push	{r7, lr}
- 80023d0:	b084      	sub	sp, #16
- 80023d2:	af00      	add	r7, sp, #0
- 80023d4:	6078      	str	r0, [r7, #4]
- 80023d6:	460b      	mov	r3, r1
- 80023d8:	70fb      	strb	r3, [r7, #3]
+ 8002472:	b580      	push	{r7, lr}
+ 8002474:	b084      	sub	sp, #16
+ 8002476:	af00      	add	r7, sp, #0
+ 8002478:	6078      	str	r0, [r7, #4]
+ 800247a:	460b      	mov	r3, r1
+ 800247c:	70fb      	strb	r3, [r7, #3]
     uint8_t rf_setup = DRV_Nrf_ReadRegister(NRF24L01Instance, RF_SETUP);
- 80023da:	2106      	movs	r1, #6
- 80023dc:	6878      	ldr	r0, [r7, #4]
- 80023de:	f000 f885 	bl	80024ec <DRV_Nrf_ReadRegister>
- 80023e2:	4603      	mov	r3, r0
- 80023e4:	73fb      	strb	r3, [r7, #15]
+ 800247e:	2106      	movs	r1, #6
+ 8002480:	6878      	ldr	r0, [r7, #4]
+ 8002482:	f000 f885 	bl	8002590 <DRV_Nrf_ReadRegister>
+ 8002486:	4603      	mov	r3, r0
+ 8002488:	73fb      	strb	r3, [r7, #15]
 
     /* Clear existing bits 2:1 */
     rf_setup &= ~(0x06);
- 80023e6:	7bfb      	ldrb	r3, [r7, #15]
- 80023e8:	f023 0306 	bic.w	r3, r3, #6
- 80023ec:	73fb      	strb	r3, [r7, #15]
+ 800248a:	7bfb      	ldrb	r3, [r7, #15]
+ 800248c:	f023 0306 	bic.w	r3, r3, #6
+ 8002490:	73fb      	strb	r3, [r7, #15]
 
     /* Write new level into bits 2:1 */
     rf_setup |= (level << 1);
- 80023ee:	f997 3003 	ldrsb.w	r3, [r7, #3]
- 80023f2:	005b      	lsls	r3, r3, #1
- 80023f4:	b25a      	sxtb	r2, r3
- 80023f6:	f997 300f 	ldrsb.w	r3, [r7, #15]
- 80023fa:	4313      	orrs	r3, r2
- 80023fc:	b25b      	sxtb	r3, r3
- 80023fe:	73fb      	strb	r3, [r7, #15]
+ 8002492:	f997 3003 	ldrsb.w	r3, [r7, #3]
+ 8002496:	005b      	lsls	r3, r3, #1
+ 8002498:	b25a      	sxtb	r2, r3
+ 800249a:	f997 300f 	ldrsb.w	r3, [r7, #15]
+ 800249e:	4313      	orrs	r3, r2
+ 80024a0:	b25b      	sxtb	r3, r3
+ 80024a2:	73fb      	strb	r3, [r7, #15]
 
     DRV_Nrf_WriteRegister(NRF24L01Instance, RF_SETUP, rf_setup);
- 8002400:	7bfb      	ldrb	r3, [r7, #15]
- 8002402:	461a      	mov	r2, r3
- 8002404:	2106      	movs	r1, #6
- 8002406:	6878      	ldr	r0, [r7, #4]
- 8002408:	f000 f8a7 	bl	800255a <DRV_Nrf_WriteRegister>
+ 80024a4:	7bfb      	ldrb	r3, [r7, #15]
+ 80024a6:	461a      	mov	r2, r3
+ 80024a8:	2106      	movs	r1, #6
+ 80024aa:	6878      	ldr	r0, [r7, #4]
+ 80024ac:	f000 f8a7 	bl	80025fe <DRV_Nrf_WriteRegister>
     return STD_E_OK;
- 800240c:	2300      	movs	r3, #0
+ 80024b0:	2300      	movs	r3, #0
 }
- 800240e:	4618      	mov	r0, r3
- 8002410:	3710      	adds	r7, #16
- 8002412:	46bd      	mov	sp, r7
- 8002414:	bd80      	pop	{r7, pc}
+ 80024b2:	4618      	mov	r0, r3
+ 80024b4:	3710      	adds	r7, #16
+ 80024b6:	46bd      	mov	sp, r7
+ 80024b8:	bd80      	pop	{r7, pc}
 
-08002416 <DRV_Nrf24l01OpenReadingPipe>:
+080024ba <DRV_Nrf24l01OpenReadingPipe>:
 
     return STD_E_OK;
 }
 
 NRF24L01_ReturnType DRV_Nrf24l01OpenReadingPipe(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t pipeNum, uint8_t *address)
 {
- 8002416:	b580      	push	{r7, lr}
- 8002418:	b086      	sub	sp, #24
- 800241a:	af00      	add	r7, sp, #0
- 800241c:	60f8      	str	r0, [r7, #12]
- 800241e:	460b      	mov	r3, r1
- 8002420:	607a      	str	r2, [r7, #4]
- 8002422:	72fb      	strb	r3, [r7, #11]
+ 80024ba:	b580      	push	{r7, lr}
+ 80024bc:	b086      	sub	sp, #24
+ 80024be:	af00      	add	r7, sp, #0
+ 80024c0:	60f8      	str	r0, [r7, #12]
+ 80024c2:	460b      	mov	r3, r1
+ 80024c4:	607a      	str	r2, [r7, #4]
+ 80024c6:	72fb      	strb	r3, [r7, #11]
     NRF24L01_ReturnType retval = STD_E_OK ;
- 8002424:	2300      	movs	r3, #0
- 8002426:	75fb      	strb	r3, [r7, #23]
+ 80024c8:	2300      	movs	r3, #0
+ 80024ca:	75fb      	strb	r3, [r7, #23]
     uint8_t reg = 0 ;
- 8002428:	2300      	movs	r3, #0
- 800242a:	75bb      	strb	r3, [r7, #22]
+ 80024cc:	2300      	movs	r3, #0
+ 80024ce:	75bb      	strb	r3, [r7, #22]
     uint8_t cmd = 0 ;
- 800242c:	2300      	movs	r3, #0
- 800242e:	74fb      	strb	r3, [r7, #19]
+ 80024d0:	2300      	movs	r3, #0
+ 80024d2:	74fb      	strb	r3, [r7, #19]
     uint8_t en_rx = 0 ;
- 8002430:	2300      	movs	r3, #0
- 8002432:	757b      	strb	r3, [r7, #21]
+ 80024d4:	2300      	movs	r3, #0
+ 80024d6:	757b      	strb	r3, [r7, #21]
     uint8_t addrSize = 0 ;
- 8002434:	2300      	movs	r3, #0
- 8002436:	753b      	strb	r3, [r7, #20]
+ 80024d8:	2300      	movs	r3, #0
+ 80024da:	753b      	strb	r3, [r7, #20]
 
     if (pipeNum > 5)
- 8002438:	7afb      	ldrb	r3, [r7, #11]
- 800243a:	2b05      	cmp	r3, #5
- 800243c:	d902      	bls.n	8002444 <DRV_Nrf24l01OpenReadingPipe+0x2e>
+ 80024dc:	7afb      	ldrb	r3, [r7, #11]
+ 80024de:	2b05      	cmp	r3, #5
+ 80024e0:	d902      	bls.n	80024e8 <DRV_Nrf24l01OpenReadingPipe+0x2e>
     {
         retval = STD_E_NOT_OK;
- 800243e:	2301      	movs	r3, #1
- 8002440:	75fb      	strb	r3, [r7, #23]
- 8002442:	e04e      	b.n	80024e2 <DRV_Nrf24l01OpenReadingPipe+0xcc>
+ 80024e2:	2301      	movs	r3, #1
+ 80024e4:	75fb      	strb	r3, [r7, #23]
+ 80024e6:	e04e      	b.n	8002586 <DRV_Nrf24l01OpenReadingPipe+0xcc>
         (void) en_rx; (void) cmd ; (void) reg ;
     }
     else
     {
         /* 1. Write address to RX_ADDR_Px register */
         reg = RX_ADDR_P0 + pipeNum;
- 8002444:	7afb      	ldrb	r3, [r7, #11]
- 8002446:	330a      	adds	r3, #10
- 8002448:	75bb      	strb	r3, [r7, #22]
+ 80024e8:	7afb      	ldrb	r3, [r7, #11]
+ 80024ea:	330a      	adds	r3, #10
+ 80024ec:	75bb      	strb	r3, [r7, #22]
         cmd = W_REGISTER | reg;
- 800244a:	7dbb      	ldrb	r3, [r7, #22]
- 800244c:	f043 0320 	orr.w	r3, r3, #32
- 8002450:	b2db      	uxtb	r3, r3
- 8002452:	74fb      	strb	r3, [r7, #19]
+ 80024ee:	7dbb      	ldrb	r3, [r7, #22]
+ 80024f0:	f043 0320 	orr.w	r3, r3, #32
+ 80024f4:	b2db      	uxtb	r3, r3
+ 80024f6:	74fb      	strb	r3, [r7, #19]
 
         HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
- 8002454:	68fb      	ldr	r3, [r7, #12]
- 8002456:	6898      	ldr	r0, [r3, #8]
- 8002458:	68fb      	ldr	r3, [r7, #12]
- 800245a:	889b      	ldrh	r3, [r3, #4]
- 800245c:	2200      	movs	r2, #0
- 800245e:	4619      	mov	r1, r3
- 8002460:	f7fe fb78 	bl	8000b54 <HAL_GPIO_WritePin>
+ 80024f8:	68fb      	ldr	r3, [r7, #12]
+ 80024fa:	6898      	ldr	r0, [r3, #8]
+ 80024fc:	68fb      	ldr	r3, [r7, #12]
+ 80024fe:	889b      	ldrh	r3, [r3, #4]
+ 8002500:	2200      	movs	r2, #0
+ 8002502:	4619      	mov	r1, r3
+ 8002504:	f7fe fb26 	bl	8000b54 <HAL_GPIO_WritePin>
         HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
- 8002464:	68fb      	ldr	r3, [r7, #12]
- 8002466:	6818      	ldr	r0, [r3, #0]
- 8002468:	f107 0113 	add.w	r1, r7, #19
- 800246c:	230a      	movs	r3, #10
- 800246e:	2201      	movs	r2, #1
- 8002470:	f7ff f804 	bl	800147c <HAL_SPI_Transmit>
+ 8002508:	68fb      	ldr	r3, [r7, #12]
+ 800250a:	6818      	ldr	r0, [r3, #0]
+ 800250c:	f107 0113 	add.w	r1, r7, #19
+ 8002510:	230a      	movs	r3, #10
+ 8002512:	2201      	movs	r2, #1
+ 8002514:	f7fe ffb2 	bl	800147c <HAL_SPI_Transmit>
 
         /* P0 and P1 use 5 bytes, P2-P5 only use 1 byte (LSB) */
         addrSize = (pipeNum < 2) ? 5 : 1;
- 8002474:	7afb      	ldrb	r3, [r7, #11]
- 8002476:	2b01      	cmp	r3, #1
- 8002478:	d801      	bhi.n	800247e <DRV_Nrf24l01OpenReadingPipe+0x68>
- 800247a:	2305      	movs	r3, #5
- 800247c:	e000      	b.n	8002480 <DRV_Nrf24l01OpenReadingPipe+0x6a>
- 800247e:	2301      	movs	r3, #1
- 8002480:	753b      	strb	r3, [r7, #20]
+ 8002518:	7afb      	ldrb	r3, [r7, #11]
+ 800251a:	2b01      	cmp	r3, #1
+ 800251c:	d801      	bhi.n	8002522 <DRV_Nrf24l01OpenReadingPipe+0x68>
+ 800251e:	2305      	movs	r3, #5
+ 8002520:	e000      	b.n	8002524 <DRV_Nrf24l01OpenReadingPipe+0x6a>
+ 8002522:	2301      	movs	r3, #1
+ 8002524:	753b      	strb	r3, [r7, #20]
         HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, address, addrSize, 10);
- 8002482:	68fb      	ldr	r3, [r7, #12]
- 8002484:	6818      	ldr	r0, [r3, #0]
- 8002486:	7d3b      	ldrb	r3, [r7, #20]
- 8002488:	b29a      	uxth	r2, r3
- 800248a:	230a      	movs	r3, #10
- 800248c:	6879      	ldr	r1, [r7, #4]
- 800248e:	f7fe fff5 	bl	800147c <HAL_SPI_Transmit>
+ 8002526:	68fb      	ldr	r3, [r7, #12]
+ 8002528:	6818      	ldr	r0, [r3, #0]
+ 800252a:	7d3b      	ldrb	r3, [r7, #20]
+ 800252c:	b29a      	uxth	r2, r3
+ 800252e:	230a      	movs	r3, #10
+ 8002530:	6879      	ldr	r1, [r7, #4]
+ 8002532:	f7fe ffa3 	bl	800147c <HAL_SPI_Transmit>
         HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
- 8002492:	68fb      	ldr	r3, [r7, #12]
- 8002494:	6898      	ldr	r0, [r3, #8]
- 8002496:	68fb      	ldr	r3, [r7, #12]
- 8002498:	889b      	ldrh	r3, [r3, #4]
- 800249a:	2201      	movs	r2, #1
- 800249c:	4619      	mov	r1, r3
- 800249e:	f7fe fb59 	bl	8000b54 <HAL_GPIO_WritePin>
+ 8002536:	68fb      	ldr	r3, [r7, #12]
+ 8002538:	6898      	ldr	r0, [r3, #8]
+ 800253a:	68fb      	ldr	r3, [r7, #12]
+ 800253c:	889b      	ldrh	r3, [r3, #4]
+ 800253e:	2201      	movs	r2, #1
+ 8002540:	4619      	mov	r1, r3
+ 8002542:	f7fe fb07 	bl	8000b54 <HAL_GPIO_WritePin>
 
         /* 2. Set static Payload Width (Defaulting to 32 bytes) */
         DRV_Nrf_WriteRegister(NRF24L01Instance, RX_PW_P0 + pipeNum, 32);
- 80024a2:	7afb      	ldrb	r3, [r7, #11]
- 80024a4:	3311      	adds	r3, #17
- 80024a6:	b2db      	uxtb	r3, r3
- 80024a8:	2220      	movs	r2, #32
- 80024aa:	4619      	mov	r1, r3
- 80024ac:	68f8      	ldr	r0, [r7, #12]
- 80024ae:	f000 f854 	bl	800255a <DRV_Nrf_WriteRegister>
+ 8002546:	7afb      	ldrb	r3, [r7, #11]
+ 8002548:	3311      	adds	r3, #17
+ 800254a:	b2db      	uxtb	r3, r3
+ 800254c:	2220      	movs	r2, #32
+ 800254e:	4619      	mov	r1, r3
+ 8002550:	68f8      	ldr	r0, [r7, #12]
+ 8002552:	f000 f854 	bl	80025fe <DRV_Nrf_WriteRegister>
 
         /* 3. Activate the specific Pipe in EN_RXADDR register */
         en_rx = DRV_Nrf_ReadRegister(NRF24L01Instance, EN_RXADDR);
- 80024b2:	2102      	movs	r1, #2
- 80024b4:	68f8      	ldr	r0, [r7, #12]
- 80024b6:	f000 f819 	bl	80024ec <DRV_Nrf_ReadRegister>
- 80024ba:	4603      	mov	r3, r0
- 80024bc:	757b      	strb	r3, [r7, #21]
+ 8002556:	2102      	movs	r1, #2
+ 8002558:	68f8      	ldr	r0, [r7, #12]
+ 800255a:	f000 f819 	bl	8002590 <DRV_Nrf_ReadRegister>
+ 800255e:	4603      	mov	r3, r0
+ 8002560:	757b      	strb	r3, [r7, #21]
         en_rx |= (1 << pipeNum);
- 80024be:	7afb      	ldrb	r3, [r7, #11]
- 80024c0:	2201      	movs	r2, #1
- 80024c2:	fa02 f303 	lsl.w	r3, r2, r3
- 80024c6:	b25a      	sxtb	r2, r3
- 80024c8:	f997 3015 	ldrsb.w	r3, [r7, #21]
- 80024cc:	4313      	orrs	r3, r2
- 80024ce:	b25b      	sxtb	r3, r3
- 80024d0:	757b      	strb	r3, [r7, #21]
+ 8002562:	7afb      	ldrb	r3, [r7, #11]
+ 8002564:	2201      	movs	r2, #1
+ 8002566:	fa02 f303 	lsl.w	r3, r2, r3
+ 800256a:	b25a      	sxtb	r2, r3
+ 800256c:	f997 3015 	ldrsb.w	r3, [r7, #21]
+ 8002570:	4313      	orrs	r3, r2
+ 8002572:	b25b      	sxtb	r3, r3
+ 8002574:	757b      	strb	r3, [r7, #21]
         DRV_Nrf_WriteRegister(NRF24L01Instance, EN_RXADDR, en_rx);
- 80024d2:	7d7b      	ldrb	r3, [r7, #21]
- 80024d4:	461a      	mov	r2, r3
- 80024d6:	2102      	movs	r1, #2
- 80024d8:	68f8      	ldr	r0, [r7, #12]
- 80024da:	f000 f83e 	bl	800255a <DRV_Nrf_WriteRegister>
+ 8002576:	7d7b      	ldrb	r3, [r7, #21]
+ 8002578:	461a      	mov	r2, r3
+ 800257a:	2102      	movs	r1, #2
+ 800257c:	68f8      	ldr	r0, [r7, #12]
+ 800257e:	f000 f83e 	bl	80025fe <DRV_Nrf_WriteRegister>
         retval = STD_E_OK;
- 80024de:	2300      	movs	r3, #0
- 80024e0:	75fb      	strb	r3, [r7, #23]
+ 8002582:	2300      	movs	r3, #0
+ 8002584:	75fb      	strb	r3, [r7, #23]
     }
 
     return retval;
- 80024e2:	7dfb      	ldrb	r3, [r7, #23]
+ 8002586:	7dfb      	ldrb	r3, [r7, #23]
 }
- 80024e4:	4618      	mov	r0, r3
- 80024e6:	3718      	adds	r7, #24
- 80024e8:	46bd      	mov	sp, r7
- 80024ea:	bd80      	pop	{r7, pc}
+ 8002588:	4618      	mov	r0, r3
+ 800258a:	3718      	adds	r7, #24
+ 800258c:	46bd      	mov	sp, r7
+ 800258e:	bd80      	pop	{r7, pc}
 
-080024ec <DRV_Nrf_ReadRegister>:
+08002590 <DRV_Nrf_ReadRegister>:
 
 /*
  * Local helper functions
  */
 static uint8_t DRV_Nrf_ReadRegister(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t reg)
 {
- 80024ec:	b580      	push	{r7, lr}
- 80024ee:	b086      	sub	sp, #24
- 80024f0:	af02      	add	r7, sp, #8
- 80024f2:	6078      	str	r0, [r7, #4]
- 80024f4:	460b      	mov	r3, r1
- 80024f6:	70fb      	strb	r3, [r7, #3]
+ 8002590:	b580      	push	{r7, lr}
+ 8002592:	b086      	sub	sp, #24
+ 8002594:	af02      	add	r7, sp, #8
+ 8002596:	6078      	str	r0, [r7, #4]
+ 8002598:	460b      	mov	r3, r1
+ 800259a:	70fb      	strb	r3, [r7, #3]
     uint8_t cmd = READ_REGISTER(reg);
- 80024f8:	78fb      	ldrb	r3, [r7, #3]
- 80024fa:	f003 031f 	and.w	r3, r3, #31
- 80024fe:	b2db      	uxtb	r3, r3
- 8002500:	73fb      	strb	r3, [r7, #15]
+ 800259c:	78fb      	ldrb	r3, [r7, #3]
+ 800259e:	f003 031f 	and.w	r3, r3, #31
+ 80025a2:	b2db      	uxtb	r3, r3
+ 80025a4:	73fb      	strb	r3, [r7, #15]
     uint8_t status = 0;
- 8002502:	2300      	movs	r3, #0
- 8002504:	73bb      	strb	r3, [r7, #14]
+ 80025a6:	2300      	movs	r3, #0
+ 80025a8:	73bb      	strb	r3, [r7, #14]
     uint8_t data = 0;
- 8002506:	2300      	movs	r3, #0
- 8002508:	737b      	strb	r3, [r7, #13]
+ 80025aa:	2300      	movs	r3, #0
+ 80025ac:	737b      	strb	r3, [r7, #13]
 
     /* Start SPI transmission */
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
- 800250a:	687b      	ldr	r3, [r7, #4]
- 800250c:	6898      	ldr	r0, [r3, #8]
- 800250e:	687b      	ldr	r3, [r7, #4]
- 8002510:	889b      	ldrh	r3, [r3, #4]
- 8002512:	2200      	movs	r2, #0
- 8002514:	4619      	mov	r1, r3
- 8002516:	f7fe fb1d 	bl	8000b54 <HAL_GPIO_WritePin>
+ 80025ae:	687b      	ldr	r3, [r7, #4]
+ 80025b0:	6898      	ldr	r0, [r3, #8]
+ 80025b2:	687b      	ldr	r3, [r7, #4]
+ 80025b4:	889b      	ldrh	r3, [r3, #4]
+ 80025b6:	2200      	movs	r2, #0
+ 80025b8:	4619      	mov	r1, r3
+ 80025ba:	f7fe facb 	bl	8000b54 <HAL_GPIO_WritePin>
 
     /* Send address and read status simultaneously, then read data */
     HAL_SPI_TransmitReceive(NRF24L01Instance->SPI_Instance, &cmd, &status, 1, 10);
- 800251a:	687b      	ldr	r3, [r7, #4]
- 800251c:	6818      	ldr	r0, [r3, #0]
- 800251e:	f107 020e 	add.w	r2, r7, #14
- 8002522:	f107 010f 	add.w	r1, r7, #15
- 8002526:	230a      	movs	r3, #10
- 8002528:	9300      	str	r3, [sp, #0]
- 800252a:	2301      	movs	r3, #1
- 800252c:	f7ff fa03 	bl	8001936 <HAL_SPI_TransmitReceive>
+ 80025be:	687b      	ldr	r3, [r7, #4]
+ 80025c0:	6818      	ldr	r0, [r3, #0]
+ 80025c2:	f107 020e 	add.w	r2, r7, #14
+ 80025c6:	f107 010f 	add.w	r1, r7, #15
+ 80025ca:	230a      	movs	r3, #10
+ 80025cc:	9300      	str	r3, [sp, #0]
+ 80025ce:	2301      	movs	r3, #1
+ 80025d0:	f7ff f9b1 	bl	8001936 <HAL_SPI_TransmitReceive>
     HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &data, 1, 10);
- 8002530:	687b      	ldr	r3, [r7, #4]
- 8002532:	6818      	ldr	r0, [r3, #0]
- 8002534:	f107 010d 	add.w	r1, r7, #13
- 8002538:	230a      	movs	r3, #10
- 800253a:	2201      	movs	r2, #1
- 800253c:	f7ff f8e2 	bl	8001704 <HAL_SPI_Receive>
+ 80025d4:	687b      	ldr	r3, [r7, #4]
+ 80025d6:	6818      	ldr	r0, [r3, #0]
+ 80025d8:	f107 010d 	add.w	r1, r7, #13
+ 80025dc:	230a      	movs	r3, #10
+ 80025de:	2201      	movs	r2, #1
+ 80025e0:	f7ff f890 	bl	8001704 <HAL_SPI_Receive>
 
     /* End SPI transmission */
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
- 8002540:	687b      	ldr	r3, [r7, #4]
- 8002542:	6898      	ldr	r0, [r3, #8]
- 8002544:	687b      	ldr	r3, [r7, #4]
- 8002546:	889b      	ldrh	r3, [r3, #4]
- 8002548:	2201      	movs	r2, #1
- 800254a:	4619      	mov	r1, r3
- 800254c:	f7fe fb02 	bl	8000b54 <HAL_GPIO_WritePin>
+ 80025e4:	687b      	ldr	r3, [r7, #4]
+ 80025e6:	6898      	ldr	r0, [r3, #8]
+ 80025e8:	687b      	ldr	r3, [r7, #4]
+ 80025ea:	889b      	ldrh	r3, [r3, #4]
+ 80025ec:	2201      	movs	r2, #1
+ 80025ee:	4619      	mov	r1, r3
+ 80025f0:	f7fe fab0 	bl	8000b54 <HAL_GPIO_WritePin>
 
     return data;
- 8002550:	7b7b      	ldrb	r3, [r7, #13]
+ 80025f4:	7b7b      	ldrb	r3, [r7, #13]
 }
- 8002552:	4618      	mov	r0, r3
- 8002554:	3710      	adds	r7, #16
- 8002556:	46bd      	mov	sp, r7
- 8002558:	bd80      	pop	{r7, pc}
+ 80025f6:	4618      	mov	r0, r3
+ 80025f8:	3710      	adds	r7, #16
+ 80025fa:	46bd      	mov	sp, r7
+ 80025fc:	bd80      	pop	{r7, pc}
 
-0800255a <DRV_Nrf_WriteRegister>:
+080025fe <DRV_Nrf_WriteRegister>:
 
 static void DRV_Nrf_WriteRegister(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t reg, uint8_t data)
 {
- 800255a:	b580      	push	{r7, lr}
- 800255c:	b084      	sub	sp, #16
- 800255e:	af00      	add	r7, sp, #0
- 8002560:	6078      	str	r0, [r7, #4]
- 8002562:	460b      	mov	r3, r1
- 8002564:	70fb      	strb	r3, [r7, #3]
- 8002566:	4613      	mov	r3, r2
- 8002568:	70bb      	strb	r3, [r7, #2]
+ 80025fe:	b580      	push	{r7, lr}
+ 8002600:	b084      	sub	sp, #16
+ 8002602:	af00      	add	r7, sp, #0
+ 8002604:	6078      	str	r0, [r7, #4]
+ 8002606:	460b      	mov	r3, r1
+ 8002608:	70fb      	strb	r3, [r7, #3]
+ 800260a:	4613      	mov	r3, r2
+ 800260c:	70bb      	strb	r3, [r7, #2]
     uint8_t l_reg = WRITE_REGISTER(reg);
- 800256a:	78fb      	ldrb	r3, [r7, #3]
- 800256c:	f043 0320 	orr.w	r3, r3, #32
- 8002570:	b2db      	uxtb	r3, r3
- 8002572:	73fb      	strb	r3, [r7, #15]
+ 800260e:	78fb      	ldrb	r3, [r7, #3]
+ 8002610:	f043 0320 	orr.w	r3, r3, #32
+ 8002614:	b2db      	uxtb	r3, r3
+ 8002616:	73fb      	strb	r3, [r7, #15]
 
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
- 8002574:	687b      	ldr	r3, [r7, #4]
- 8002576:	6898      	ldr	r0, [r3, #8]
- 8002578:	687b      	ldr	r3, [r7, #4]
- 800257a:	889b      	ldrh	r3, [r3, #4]
- 800257c:	2200      	movs	r2, #0
- 800257e:	4619      	mov	r1, r3
- 8002580:	f7fe fae8 	bl	8000b54 <HAL_GPIO_WritePin>
+ 8002618:	687b      	ldr	r3, [r7, #4]
+ 800261a:	6898      	ldr	r0, [r3, #8]
+ 800261c:	687b      	ldr	r3, [r7, #4]
+ 800261e:	889b      	ldrh	r3, [r3, #4]
+ 8002620:	2200      	movs	r2, #0
+ 8002622:	4619      	mov	r1, r3
+ 8002624:	f7fe fa96 	bl	8000b54 <HAL_GPIO_WritePin>
 
     /* Send register address and then the data byte */
     HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &l_reg , 1, 10);
- 8002584:	687b      	ldr	r3, [r7, #4]
- 8002586:	6818      	ldr	r0, [r3, #0]
- 8002588:	f107 010f 	add.w	r1, r7, #15
- 800258c:	230a      	movs	r3, #10
- 800258e:	2201      	movs	r2, #1
- 8002590:	f7fe ff74 	bl	800147c <HAL_SPI_Transmit>
+ 8002628:	687b      	ldr	r3, [r7, #4]
+ 800262a:	6818      	ldr	r0, [r3, #0]
+ 800262c:	f107 010f 	add.w	r1, r7, #15
+ 8002630:	230a      	movs	r3, #10
+ 8002632:	2201      	movs	r2, #1
+ 8002634:	f7fe ff22 	bl	800147c <HAL_SPI_Transmit>
     HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &data, 1, 10);
- 8002594:	687b      	ldr	r3, [r7, #4]
- 8002596:	6818      	ldr	r0, [r3, #0]
- 8002598:	1cb9      	adds	r1, r7, #2
- 800259a:	230a      	movs	r3, #10
- 800259c:	2201      	movs	r2, #1
- 800259e:	f7fe ff6d 	bl	800147c <HAL_SPI_Transmit>
+ 8002638:	687b      	ldr	r3, [r7, #4]
+ 800263a:	6818      	ldr	r0, [r3, #0]
+ 800263c:	1cb9      	adds	r1, r7, #2
+ 800263e:	230a      	movs	r3, #10
+ 8002640:	2201      	movs	r2, #1
+ 8002642:	f7fe ff1b 	bl	800147c <HAL_SPI_Transmit>
 
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
- 80025a2:	687b      	ldr	r3, [r7, #4]
- 80025a4:	6898      	ldr	r0, [r3, #8]
- 80025a6:	687b      	ldr	r3, [r7, #4]
- 80025a8:	889b      	ldrh	r3, [r3, #4]
- 80025aa:	2201      	movs	r2, #1
- 80025ac:	4619      	mov	r1, r3
- 80025ae:	f7fe fad1 	bl	8000b54 <HAL_GPIO_WritePin>
+ 8002646:	687b      	ldr	r3, [r7, #4]
+ 8002648:	6898      	ldr	r0, [r3, #8]
+ 800264a:	687b      	ldr	r3, [r7, #4]
+ 800264c:	889b      	ldrh	r3, [r3, #4]
+ 800264e:	2201      	movs	r2, #1
+ 8002650:	4619      	mov	r1, r3
+ 8002652:	f7fe fa7f 	bl	8000b54 <HAL_GPIO_WritePin>
 }
- 80025b2:	bf00      	nop
- 80025b4:	3710      	adds	r7, #16
- 80025b6:	46bd      	mov	sp, r7
- 80025b8:	bd80      	pop	{r7, pc}
+ 8002656:	bf00      	nop
+ 8002658:	3710      	adds	r7, #16
+ 800265a:	46bd      	mov	sp, r7
+ 800265c:	bd80      	pop	{r7, pc}
 
-080025ba <DRV_Nrf24L01ReadPayload>:
+0800265e <DRV_Nrf24L01ReadPayload>:
 
 /**
  * @brief Reads a payload from the RX FIFO
  */
 static void DRV_Nrf24L01ReadPayload(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t *data, uint8_t length)
 {
- 80025ba:	b580      	push	{r7, lr}
- 80025bc:	b086      	sub	sp, #24
- 80025be:	af00      	add	r7, sp, #0
- 80025c0:	60f8      	str	r0, [r7, #12]
- 80025c2:	60b9      	str	r1, [r7, #8]
- 80025c4:	4613      	mov	r3, r2
- 80025c6:	71fb      	strb	r3, [r7, #7]
+ 800265e:	b580      	push	{r7, lr}
+ 8002660:	b086      	sub	sp, #24
+ 8002662:	af00      	add	r7, sp, #0
+ 8002664:	60f8      	str	r0, [r7, #12]
+ 8002666:	60b9      	str	r1, [r7, #8]
+ 8002668:	4613      	mov	r3, r2
+ 800266a:	71fb      	strb	r3, [r7, #7]
     uint8_t cmd = R_RX_PAYLOAD;
- 80025c8:	2361      	movs	r3, #97	@ 0x61
- 80025ca:	75fb      	strb	r3, [r7, #23]
+ 800266c:	2361      	movs	r3, #97	@ 0x61
+ 800266e:	75fb      	strb	r3, [r7, #23]
 
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
- 80025cc:	68fb      	ldr	r3, [r7, #12]
- 80025ce:	6898      	ldr	r0, [r3, #8]
- 80025d0:	68fb      	ldr	r3, [r7, #12]
- 80025d2:	889b      	ldrh	r3, [r3, #4]
- 80025d4:	2200      	movs	r2, #0
- 80025d6:	4619      	mov	r1, r3
- 80025d8:	f7fe fabc 	bl	8000b54 <HAL_GPIO_WritePin>
+ 8002670:	68fb      	ldr	r3, [r7, #12]
+ 8002672:	6898      	ldr	r0, [r3, #8]
+ 8002674:	68fb      	ldr	r3, [r7, #12]
+ 8002676:	889b      	ldrh	r3, [r3, #4]
+ 8002678:	2200      	movs	r2, #0
+ 800267a:	4619      	mov	r1, r3
+ 800267c:	f7fe fa6a 	bl	8000b54 <HAL_GPIO_WritePin>
 
     /* Send command and receive the requested number of bytes */
     HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
- 80025dc:	68fb      	ldr	r3, [r7, #12]
- 80025de:	6818      	ldr	r0, [r3, #0]
- 80025e0:	f107 0117 	add.w	r1, r7, #23
- 80025e4:	230a      	movs	r3, #10
- 80025e6:	2201      	movs	r2, #1
- 80025e8:	f7fe ff48 	bl	800147c <HAL_SPI_Transmit>
+ 8002680:	68fb      	ldr	r3, [r7, #12]
+ 8002682:	6818      	ldr	r0, [r3, #0]
+ 8002684:	f107 0117 	add.w	r1, r7, #23
+ 8002688:	230a      	movs	r3, #10
+ 800268a:	2201      	movs	r2, #1
+ 800268c:	f7fe fef6 	bl	800147c <HAL_SPI_Transmit>
     HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, data, length, 100);
- 80025ec:	68fb      	ldr	r3, [r7, #12]
- 80025ee:	6818      	ldr	r0, [r3, #0]
- 80025f0:	79fb      	ldrb	r3, [r7, #7]
- 80025f2:	b29a      	uxth	r2, r3
- 80025f4:	2364      	movs	r3, #100	@ 0x64
- 80025f6:	68b9      	ldr	r1, [r7, #8]
- 80025f8:	f7ff f884 	bl	8001704 <HAL_SPI_Receive>
+ 8002690:	68fb      	ldr	r3, [r7, #12]
+ 8002692:	6818      	ldr	r0, [r3, #0]
+ 8002694:	79fb      	ldrb	r3, [r7, #7]
+ 8002696:	b29a      	uxth	r2, r3
+ 8002698:	2364      	movs	r3, #100	@ 0x64
+ 800269a:	68b9      	ldr	r1, [r7, #8]
+ 800269c:	f7ff f832 	bl	8001704 <HAL_SPI_Receive>
 
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
- 80025fc:	68fb      	ldr	r3, [r7, #12]
- 80025fe:	6898      	ldr	r0, [r3, #8]
- 8002600:	68fb      	ldr	r3, [r7, #12]
- 8002602:	889b      	ldrh	r3, [r3, #4]
- 8002604:	2201      	movs	r2, #1
- 8002606:	4619      	mov	r1, r3
- 8002608:	f7fe faa4 	bl	8000b54 <HAL_GPIO_WritePin>
+ 80026a0:	68fb      	ldr	r3, [r7, #12]
+ 80026a2:	6898      	ldr	r0, [r3, #8]
+ 80026a4:	68fb      	ldr	r3, [r7, #12]
+ 80026a6:	889b      	ldrh	r3, [r3, #4]
+ 80026a8:	2201      	movs	r2, #1
+ 80026aa:	4619      	mov	r1, r3
+ 80026ac:	f7fe fa52 	bl	8000b54 <HAL_GPIO_WritePin>
 }
- 800260c:	bf00      	nop
- 800260e:	3718      	adds	r7, #24
- 8002610:	46bd      	mov	sp, r7
- 8002612:	bd80      	pop	{r7, pc}
+ 80026b0:	bf00      	nop
+ 80026b2:	3718      	adds	r7, #24
+ 80026b4:	46bd      	mov	sp, r7
+ 80026b6:	bd80      	pop	{r7, pc}
 
-08002614 <memset>:
- 8002614:	4603      	mov	r3, r0
- 8002616:	4402      	add	r2, r0
- 8002618:	4293      	cmp	r3, r2
- 800261a:	d100      	bne.n	800261e <memset+0xa>
- 800261c:	4770      	bx	lr
- 800261e:	f803 1b01 	strb.w	r1, [r3], #1
- 8002622:	e7f9      	b.n	8002618 <memset+0x4>
+080026b8 <memset>:
+ 80026b8:	4603      	mov	r3, r0
+ 80026ba:	4402      	add	r2, r0
+ 80026bc:	4293      	cmp	r3, r2
+ 80026be:	d100      	bne.n	80026c2 <memset+0xa>
+ 80026c0:	4770      	bx	lr
+ 80026c2:	f803 1b01 	strb.w	r1, [r3], #1
+ 80026c6:	e7f9      	b.n	80026bc <memset+0x4>
 
-08002624 <__libc_init_array>:
- 8002624:	b570      	push	{r4, r5, r6, lr}
- 8002626:	2600      	movs	r6, #0
- 8002628:	4d0c      	ldr	r5, [pc, #48]	@ (800265c <__libc_init_array+0x38>)
- 800262a:	4c0d      	ldr	r4, [pc, #52]	@ (8002660 <__libc_init_array+0x3c>)
- 800262c:	1b64      	subs	r4, r4, r5
- 800262e:	10a4      	asrs	r4, r4, #2
- 8002630:	42a6      	cmp	r6, r4
- 8002632:	d109      	bne.n	8002648 <__libc_init_array+0x24>
- 8002634:	f000 f81a 	bl	800266c <_init>
- 8002638:	2600      	movs	r6, #0
- 800263a:	4d0a      	ldr	r5, [pc, #40]	@ (8002664 <__libc_init_array+0x40>)
- 800263c:	4c0a      	ldr	r4, [pc, #40]	@ (8002668 <__libc_init_array+0x44>)
- 800263e:	1b64      	subs	r4, r4, r5
- 8002640:	10a4      	asrs	r4, r4, #2
- 8002642:	42a6      	cmp	r6, r4
- 8002644:	d105      	bne.n	8002652 <__libc_init_array+0x2e>
- 8002646:	bd70      	pop	{r4, r5, r6, pc}
- 8002648:	f855 3b04 	ldr.w	r3, [r5], #4
- 800264c:	4798      	blx	r3
- 800264e:	3601      	adds	r6, #1
- 8002650:	e7ee      	b.n	8002630 <__libc_init_array+0xc>
- 8002652:	f855 3b04 	ldr.w	r3, [r5], #4
- 8002656:	4798      	blx	r3
- 8002658:	3601      	adds	r6, #1
- 800265a:	e7f2      	b.n	8002642 <__libc_init_array+0x1e>
- 800265c:	080026c0 	.word	0x080026c0
- 8002660:	080026c0 	.word	0x080026c0
- 8002664:	080026c0 	.word	0x080026c0
- 8002668:	080026c4 	.word	0x080026c4
+080026c8 <__libc_init_array>:
+ 80026c8:	b570      	push	{r4, r5, r6, lr}
+ 80026ca:	2600      	movs	r6, #0
+ 80026cc:	4d0c      	ldr	r5, [pc, #48]	@ (8002700 <__libc_init_array+0x38>)
+ 80026ce:	4c0d      	ldr	r4, [pc, #52]	@ (8002704 <__libc_init_array+0x3c>)
+ 80026d0:	1b64      	subs	r4, r4, r5
+ 80026d2:	10a4      	asrs	r4, r4, #2
+ 80026d4:	42a6      	cmp	r6, r4
+ 80026d6:	d109      	bne.n	80026ec <__libc_init_array+0x24>
+ 80026d8:	f000 f81a 	bl	8002710 <_init>
+ 80026dc:	2600      	movs	r6, #0
+ 80026de:	4d0a      	ldr	r5, [pc, #40]	@ (8002708 <__libc_init_array+0x40>)
+ 80026e0:	4c0a      	ldr	r4, [pc, #40]	@ (800270c <__libc_init_array+0x44>)
+ 80026e2:	1b64      	subs	r4, r4, r5
+ 80026e4:	10a4      	asrs	r4, r4, #2
+ 80026e6:	42a6      	cmp	r6, r4
+ 80026e8:	d105      	bne.n	80026f6 <__libc_init_array+0x2e>
+ 80026ea:	bd70      	pop	{r4, r5, r6, pc}
+ 80026ec:	f855 3b04 	ldr.w	r3, [r5], #4
+ 80026f0:	4798      	blx	r3
+ 80026f2:	3601      	adds	r6, #1
+ 80026f4:	e7ee      	b.n	80026d4 <__libc_init_array+0xc>
+ 80026f6:	f855 3b04 	ldr.w	r3, [r5], #4
+ 80026fa:	4798      	blx	r3
+ 80026fc:	3601      	adds	r6, #1
+ 80026fe:	e7f2      	b.n	80026e6 <__libc_init_array+0x1e>
+ 8002700:	08002764 	.word	0x08002764
+ 8002704:	08002764 	.word	0x08002764
+ 8002708:	08002764 	.word	0x08002764
+ 800270c:	08002768 	.word	0x08002768
 
-0800266c <_init>:
- 800266c:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
- 800266e:	bf00      	nop
- 8002670:	bcf8      	pop	{r3, r4, r5, r6, r7}
- 8002672:	bc08      	pop	{r3}
- 8002674:	469e      	mov	lr, r3
- 8002676:	4770      	bx	lr
+08002710 <_init>:
+ 8002710:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 8002712:	bf00      	nop
+ 8002714:	bcf8      	pop	{r3, r4, r5, r6, r7}
+ 8002716:	bc08      	pop	{r3}
+ 8002718:	469e      	mov	lr, r3
+ 800271a:	4770      	bx	lr
 
-08002678 <_fini>:
- 8002678:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
- 800267a:	bf00      	nop
- 800267c:	bcf8      	pop	{r3, r4, r5, r6, r7}
- 800267e:	bc08      	pop	{r3}
- 8002680:	469e      	mov	lr, r3
- 8002682:	4770      	bx	lr
+0800271c <_fini>:
+ 800271c:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 800271e:	bf00      	nop
+ 8002720:	bcf8      	pop	{r3, r4, r5, r6, r7}
+ 8002722:	bc08      	pop	{r3}
+ 8002724:	469e      	mov	lr, r3
+ 8002726:	4770      	bx	lr

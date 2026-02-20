@@ -125,6 +125,22 @@ uint8_t DRV_Nrf24l01GetStatus(NRF24L01_HandleTypedef* NRF24L01Instance)
 
     /* End SPI transmission */
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+    retval = (retval >> 6) & 0x01 ;
+	return retval;
+}
+uint8_t DRV_Nrf24l01DataReceiveAvailable(NRF24L01_HandleTypedef* NRF24L01Instance)
+{
+	uint8_t retval = 0 ;
+	uint8_t cmd    = 0xFFU;
+    /* Start SPI transmission */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+
+    /* Send address and read status simultaneously, then read data */
+    HAL_SPI_TransmitReceive(NRF24L01Instance->SPI_Instance, &cmd, &retval, 1, 10);
+
+    /* End SPI transmission */
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+    retval = (retval >> 6) & 0x01 ;
 
 	return retval;
 }
@@ -164,8 +180,6 @@ NRF24L01_ReturnType DRV_Nrf24l01SwitchMode(NRF24L01_HandleTypedef* NRF24L01Insta
 void DRV_Nrf24l01WritePayloadWithAck(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t pipeID, uint8_t *sourcePtr)
 {
     uint8_t cmd = 0 ;
-    /* Move to Standby-I mode */
-    HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
 
     /* Clear data in TX FIFO */
     cmd = FLUSH_TX;
@@ -187,7 +201,6 @@ void DRV_Nrf24l01WritePayloadWithAck(NRF24L01_HandleTypedef* NRF24L01Instance, u
 
 NRF24L01_ReturnType DRV_Nrf24l01Receive(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t* pipeID, uint8_t *destinationPtr, uint32_t timeout)
 {
-    uint8_t config      = 0;
     uint8_t status      = 0;
     uint8_t fifo_status = 0;
     uint8_t cmd         = 0 ;
@@ -197,63 +210,77 @@ NRF24L01_ReturnType DRV_Nrf24l01Receive(NRF24L01_HandleTypedef* NRF24L01Instance
 
     NRF24L01Instance->State = NRF24_BUSY;
 
-    /* 1. Switch to RX mode (PRIM_RX = 1) */
-    config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
-    DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config | (1 << 0));
-
-    /* 2. Activate CE to start listening */
-    HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_SET);
-
     /* 3. Wait for data or timeout */
     if ( FALSE == NRF24L01Instance->InterruptMode)
     {
-        do {
+        do
+        {
             status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
             timeoutCount--;
         } while (!(status & (1 << 6)) && (timeoutCount > 0)); /* Bit 6 is RX_DR */
+        /* 4. If data received (RX_DR = 1) */
+        if (status & (1 << 6))
+        {
+			/* Identify source Pipe ID */
+			(*pipeID) = (status >> 1) & 0x07;
+
+			/* Empty the FIFO */
+			do {
+				if ( NRF24L01Instance->DynamicPayloadEnable == TRUE)
+				{
+					HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+					cmd = R_RX_PL_WID;
+					HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+					HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &length, 1, 100);
+					HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+				}
+
+				/* Read Payload from the top of the FIFO */
+				DRV_Nrf24L01ReadPayload(NRF24L01Instance, destinationPtr, length);
+
+				/* Clear RX_DR flag to allow next packet processing */
+				DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 6));
+
+				/* Check if FIFO still contains data (RX_EMPTY bit) */
+				fifo_status = DRV_Nrf_ReadRegister(NRF24L01Instance, FIFO_STATUS);
+
+			} while (!(fifo_status & (1 << 0)));
+
+			/* Pull CE low (Standby-I) after processing */
+			HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
+			retval = STD_E_OK;
+		}
+		else
+		{
+			/* Timeout or no data */
+			HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
+			retval = STD_E_NOT_OK;
+		}
     }
     else
     {
-        status = DRV_Nrf_ReadRegister(NRF24L01Instance, STATUS);
-    }
-    DRV_Nrf24l01GetStatus(NRF24L01Instance);
+    	status = DRV_Nrf24l01GetStatus(NRF24L01Instance);
+		/* Identify source Pipe ID */
+		(*pipeID) = (status >> 1) & 0x07;
 
-    /* 4. If data received (RX_DR = 1) */
-    if (status & (1 << 6)) {
-        /* Identify source Pipe ID */
-        (*pipeID) = (status >> 1) & 0x07;
+		/* Empty the FIFO */
+		do {
+			if ( NRF24L01Instance->DynamicPayloadEnable == TRUE)
+			{
+				HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+				cmd = R_RX_PL_WID;
+				HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
+				HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &length, 1, 100);
+				HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
+			}
 
-        /* Empty the FIFO */
-        do {
-            if ( NRF24L01Instance->DynamicPayloadEnable == TRUE)
-            {
-                HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
-                cmd = R_RX_PL_WID;
-                HAL_SPI_Transmit(NRF24L01Instance->SPI_Instance, &cmd, 1, 10);
-                HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &length, 1, 100);
-                HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
-            }
+			/* Read Payload from the top of the FIFO */
+			DRV_Nrf24L01ReadPayload(NRF24L01Instance, destinationPtr, length);
+			/* Check if FIFO still contains data (RX_EMPTY bit) */
+			fifo_status = DRV_Nrf_ReadRegister(NRF24L01Instance, FIFO_STATUS);
 
-            /* Read Payload from the top of the FIFO */
-            DRV_Nrf24L01ReadPayload(NRF24L01Instance, destinationPtr, length);
-
-            /* Clear RX_DR flag to allow next packet processing */
-            DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 6));
-
-            /* Check if FIFO still contains data (RX_EMPTY bit) */
-            fifo_status = DRV_Nrf_ReadRegister(NRF24L01Instance, FIFO_STATUS);
-
-        } while (!(fifo_status & (1 << 0)));
-
-        /* Pull CE low (Standby-I) after processing */
-        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
-        retval = STD_E_OK;
-    }
-    else
-    {
-        /* Timeout or no data */
-        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
-        retval = STD_E_NOT_OK;
+		} while (!(fifo_status & (1 << 0)));
+		retval = STD_E_OK;
     }
 
     NRF24L01Instance->State = NRF24_IDEL;
@@ -302,8 +329,15 @@ NRF24L01_ReturnType DRV_Nrf24l01Transmit(NRF24L01_HandleTypedef* NRF24L01Instanc
 
             retval =  STD_E_NOT_OK;
         }
-    }
 
+        /* Reload RX Address 0 */
+        DRV_Nrf24l01OpenReadingPipe(NRF24L01Instance, 0, NRF24L01Instance->RxAddressP0);
+    }
+    /* Auto switch to receive mode */
+    config = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
+	config |= (1 << 0);
+	DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config);
+    HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_SET);
     return retval;
 }
 

@@ -189,16 +189,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 | 1 | `DRV_Nrf24l01Init` | `NRF24L01_ReturnType` | Initialize module and perform full configuration |
 | 2 | `DRV_Nrf24l01Deinit` | `void` | Deinitialize and power down module |
 | 3 | `DRV_Nrf24l01GetStatus` | `uint8_t` | Read STATUS register |
-| 4 | `DRV_Nrf24l01ClearIRQ` | `void` | Clear specific interrupt flag |
-| 5 | `DRV_Nrf24l01Receive` | `NRF24L01_ReturnType` | Receive data with timeout |
-| 6 | `DRV_Nrf24l01WritePayloadWithAck` | `void` | Write ACK payload to TX FIFO |
-| 7 | `DRV_Nrf24l01ReadPayloadWithAck` | `NRF24L01_ReturnType` | Read received payload with ACK support |
-| 8 | `DRV_Nrf24l01Transmit` | `NRF24L01_ReturnType` | Transmit data and wait for acknowledgment |
-| 9 | `DRV_Nrf24l01SwitchMode` | `NRF24L01_ReturnType` | Switch between TX and RX mode |
-| 10 | `DRV_Nrf24l01SetDataRate` | `NRF24L01_ReturnType` | Configure RF data rate |
-| 11 | `DRV_Nrf24l01SetPALevel` | `NRF24L01_ReturnType` | Configure output power level |
-| 12 | `DRV_Nrf24l01OpenWritingPipe` | `NRF24L01_ReturnType` | Configure TX address pipe |
-| 13 | `DRV_Nrf24l01OpenReadingPipe` | `NRF24L01_ReturnType` | Configure RX pipe address |
+| 4 | `DRV_Nrf24l01DataReceiveAvailable` | `uint8_t` | Return status of Receive |
+| 5 | `DRV_Nrf24l01ClearIRQ` | `void` | Clear specific interrupt flag |
+| 6 | `DRV_Nrf24l01Receive` | `NRF24L01_ReturnType` | Receive data with timeout |
+| 7 | `DRV_Nrf24l01WritePayloadWithAck` | `void` | Write ACK payload to TX FIFO |
+| 8 | `DRV_Nrf24l01ReadPayloadWithAck` | `NRF24L01_ReturnType` | Read received payload with ACK support |
+| 9 | `DRV_Nrf24l01Transmit` | `NRF24L01_ReturnType` | Transmit data and wait for acknowledgment |
+| 10 | `DRV_Nrf24l01SwitchMode` | `NRF24L01_ReturnType` | Switch between TX and RX mode |
+| 11 | `DRV_Nrf24l01SetDataRate` | `NRF24L01_ReturnType` | Configure RF data rate |
+| 12 | `DRV_Nrf24l01SetPALevel` | `NRF24L01_ReturnType` | Configure output power level |
+| 13 | `DRV_Nrf24l01OpenWritingPipe` | `NRF24L01_ReturnType` | Configure TX address pipe |
+| 14 | `DRV_Nrf24l01OpenReadingPipe` | `NRF24L01_ReturnType` | Configure RX pipe address |
 ## 📌 Notes
 
 CE must be pulsed for transmission
