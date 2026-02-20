@@ -440,5 +440,19 @@ LORA_ReturnTypedef DRV_Lora_IRQHandler(LORA_HandleTypedef* LORA_Instance);
  * @output Chip version number (typically 0x12 for SX1278)
  */
 uint8_t DRV_Lora_GetVersion(LORA_HandleTypedef* LORA_Instance);
+/**
+ * @brief Read the current interrupt flags from the SX1278
+ * @param LORA_Instance Pointer to LoRa handle structure
+ * @return 8-bit value of the RegIrqFlags register
+ */
+uint8_t DRV_Lora_GetIrqStatus(LORA_HandleTypedef *LORA_Instance);
+
+/**
+ * @brief Clear a specific interrupt flag by its ID/Mask
+ * @param LORA_Instance Pointer to LoRa handle structure
+ * @param interruptMask The bit mask of the interrupt to clear (e.g., 1 << 6 for RxDone)
+ * @return STD_E_OK if successful, STD_E_NOT_OK otherwise
+ */
+LORA_ReturnTypedef DRV_Lora_ClearIrq(LORA_HandleTypedef *LORA_Instance, uint8_t interruptMask);
 
 #endif /* _DRV_LORA_H */

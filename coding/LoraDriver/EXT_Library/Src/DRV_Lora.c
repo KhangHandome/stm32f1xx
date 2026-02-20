@@ -394,24 +394,6 @@ LORA_ReturnTypedef DRV_LoraTransmit(LORA_HandleTypedef* LORA_Instance, uint8_t* 
 	}
 	else
 	{
-		/**
-		 * Interrupt mode: Still poll for completion in this implementation
-		 * Note: Could be improved to use callback from IRQ handler
-		 */
-		while ((l_irqStatus & (1 << 3)) == 0 && l_timeout-- > 1)
-		{
-			DRV_Lora_ReadRegister(LORA_Instance, REG_IRQ_FLAGS, &l_irqStatus);
-			HAL_Delay(1);
-		}
-		
-		if (l_timeout == 0)
-		{
-			retVal = STD_E_NOT_OK;
-		}
-		
-		/* Clear all interrupt flags */
-		DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, 0xFF);
-
 		/* Avoid compiler warning for unused variable */
 		(void)l_irqStatus;
 	}
@@ -785,4 +767,43 @@ static LORA_ReturnTypedef DRV_Lora_WriteFifo(LORA_HandleTypedef *LORA_Instance, 
 	HAL_GPIO_WritePin(LORA_Instance->ChipSelectPort, LORA_Instance->ChipSelectPin, GPIO_PIN_SET);
 
 	return retVal;
+}
+/**
+ * @brief Read the current interrupt flags from the SX1278
+ * @details This function retrieves the status of all 8 interrupt sources
+ * available in LoRa mode from the REG_IRQ_FLAGS (0x12) register.
+ * Common flags include RxDone (Bit 6), TxDone (Bit 3), and PayloadCrcError (Bit 5).
+ * * @in LORA_Instance Pointer to LoRa handle structure
+ * @output uint8_t Current value of the IRQ flags register
+ */
+uint8_t DRV_Lora_GetIrqStatus(LORA_HandleTypedef *LORA_Instance)
+{
+    uint8_t irqFlags = 0;
+
+    /* Read the IRQ flags register (Address 0x12) */
+    DRV_Lora_ReadRegister(LORA_Instance, REG_IRQ_FLAGS, &irqFlags);
+
+    return irqFlags;
+}
+
+/**
+ * @brief Clear a specific interrupt flag by its ID/Mask
+ * @details In the SX127x series, interrupt flags are cleared by writing a
+ * logical '1' to the corresponding bit position in REG_IRQ_FLAGS.
+ * Gently clearing individual flags prevents losing other pending interrupts.
+ * * @in LORA_Instance Pointer to LoRa handle structure
+ * @in interruptMask Bit mask representing the flag to be cleared:
+ * - 0x40: RX_DONE
+ * - 0x08: TX_DONE
+ * - 0x20: PAYLOAD_CRC_ERROR
+ * - 0x80: RX_TIMEOUT
+ * * @output LORA_ReturnTypedef STD_E_OK if write was successful
+ */
+LORA_ReturnTypedef DRV_Lora_ClearIrq(LORA_HandleTypedef *LORA_Instance, uint8_t interruptMask)
+{
+    /**
+     * Note: Writing '1' clears the bit.
+     * If you want to clear only RxDone, pass (1 << 6).
+     */
+    return DRV_Lora_WriteRegister(LORA_Instance, REG_IRQ_FLAGS, interruptMask);
 }
