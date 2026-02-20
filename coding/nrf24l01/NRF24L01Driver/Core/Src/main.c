@@ -73,13 +73,13 @@ NRF24L01_HandleTypedef Instance0 =
     .ChipEnablePin = CHIP_Enable_Pin,
     .ChipEnablePort  = CHIP_Enable_GPIO_Port,
     .InterruptMode = FALSE,
-    .NRF24L01_OutputPower = NRF24_LOW_POWER,
+    .NRF24L01_OutputPower = NRF24_MEDIUM_POWER,
     .NRF24L01_AirDataDate = NRF24L01_1MBPS,
     .FrequencyChannel     = 120,
     .AutoRetransmitCount = 10,
     .AutoRetransmitDelay = 10,
 	.DynamicPayloadEnable = TRUE,
-	.PayloadWithAckEnable = TRUE,
+	.PayloadWithAckEnable = FALSE,
 	.State = NRF24_UNINIT,
     // Gán địa chỉ mặc định
     .RxAddressP0 = {0x11, 0x22, 0x33, 0x44, 0x55},
@@ -99,7 +99,6 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint8_t pipeID = 0 ;
 	uint32_t counter = 0 ;
-	uint8_t status = 0 ;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -126,9 +125,10 @@ int main(void)
   {
 	Error_Handler(); // Nếu Init lỗi sẽ kẹt ở đây
   }
+  DRV_Nrf24l01SwitchMode(&Instance0,NRF24_RECEIVE_MODE);
 #ifndef IS_TRANSMITTER_NODE
 
-/*  NVIC_EnableIRQ(EXTI4_IRQn);*/
+//  NVIC_EnableIRQ(EXTI4_IRQn);
 #endif
   /* USER CODE END 2 */
 
@@ -145,8 +145,7 @@ int main(void)
 	  status = DRV_Nrf24l01Transmit(&Instance0,2, &masterAddress2[1], (uint8_t*)"FPT SOFT WARE ");
 	  if ( status == STD_E_OK)
 	  {
-		  /*DRV_Nrf24l01Receive(&Instance0, dummyPayload, 32);*/
-		  DRV_Nrf24l01ReadPayloadWithAck(&Instance0, dummyPayload, 100);
+		  DRV_Nrf24l01Receive(&Instance0,&pipeID,dummyPayload, 32);
 	      if(dummyPayload[0] == 'C')
 	      {
 	    	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
@@ -158,39 +157,18 @@ int main(void)
 	  {
 		  counter ++ ;
 	  }
-      HAL_Delay(200); // Gửi mỗi 0.5 giây
+      HAL_Delay(100); // Gửi mỗi 0.5 giây
 
 #else
       /* --- KỊCH BẢN NHẬN (RX) --- */
-      DRV_Nrf24l01WritePayloadWithAck(&Instance0, 3, (uint8_t*) "Come from fpt software");
-      DRV_Nrf24l01SwitchMode(&Instance0, NRF24_RECEIVE_MODE);
-      if ( DRV_Nrf24l01DataReceiveAvailable(&Instance0) == 1 )
+      if ( DRV_Nrf24l01DataReceiveAvailable(&Instance0) == 1)
       {
           DRV_Nrf24l01Receive(&Instance0,&pipeID, dummyPayload, 10 );
+
       }
-/*      if ( flag == 1 )
-      {
-    		status = DRV_Nrf24l01GetStatus(&Instance0);
-    		if ( !(( status & ( 1 << 6)) == 0) )
-    		{
-				 Data ready in RX
-				DRV_Nrf24l01Receive(&Instance0,&pipeID, dummyPayload, 10 );
-				DRV_Nrf24l01ClearIRQ(&Instance0, 6 );
-    		}
-    		if (!(( status & ( 1 << 5)) == 0) )
-    		{
-    			 Transmit complete
-    			DRV_Nrf24l01ClearIRQ(&Instance0, 5 );
-    		}
-    		if (!(( status & ( 1 << 4)) == 0) )
-    		{
-    			 Maximum number of TX retransmits interrupt
-    			DRV_Nrf24l01ClearIRQ(&Instance0, 4 );
-    		}
-			flag = 0 ;
-      }*/
       if(dummyPayload[0] == 'F')
       {
+    	  DRV_Nrf24l01Transmit(&Instance0,2, &masterAddress2[1], (uint8_t*)"Complete");
     	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     	  dummyPayload[0] = '\0';
       }
