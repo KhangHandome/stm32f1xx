@@ -156,7 +156,7 @@ uint8_t DRV_Nrf24l01DataReceiveAvailable(NRF24L01_HandleTypedef* NRF24L01Instanc
  */
 void DRV_Nrf24l01ClearIRQ(NRF24L01_HandleTypedef* NRF24L01Instance, uint8_t InterruptID)
 {
-	DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << InterruptID));
+	DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, InterruptID);
 }
 /*
  * @brief : This function used to switch state between mode TX and RX

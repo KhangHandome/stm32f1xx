@@ -35,7 +35,7 @@
 /* USER CODE BEGIN PD */
 /* USER CODE BEGIN PD */
 /* Comment dòng này nếu nạp cho board NHẬN, mở comment nếu nạp cho board PHÁT */
-//#define IS_TRANSMITTER_NODE
+#define IS_TRANSMITTER_NODE
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -52,6 +52,8 @@ uint8_t masterAddress2[4] = {0x15, 0x16, 0x17, 0x18};
 uint8_t dummyPayload[32];
 uint32_t txCounter = 0;
 volatile uint8_t flag = 0 ;
+volatile uint8_t transmited_flag = 0 ;
+volatile uint8_t received_flag = 0 ;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -72,7 +74,7 @@ NRF24L01_HandleTypedef Instance0 =
     .InterruptPort = CHIP_Irq_GPIO_Port,
     .ChipEnablePin = CHIP_Enable_Pin,
     .ChipEnablePort  = CHIP_Enable_GPIO_Port,
-    .InterruptMode = FALSE,
+    .InterruptMode = TRUE,
     .NRF24L01_OutputPower = NRF24_MEDIUM_POWER,
     .NRF24L01_AirDataDate = NRF24L01_1MBPS,
     .FrequencyChannel     = 120,
@@ -128,8 +130,9 @@ int main(void)
   DRV_Nrf24l01SwitchMode(&Instance0,NRF24_RECEIVE_MODE);
 #ifndef IS_TRANSMITTER_NODE
 
-//  NVIC_EnableIRQ(EXTI4_IRQn);
+  NVIC_EnableIRQ(EXTI4_IRQn);
 #endif
+  NVIC_EnableIRQ(EXTI4_IRQn);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -143,6 +146,11 @@ int main(void)
 	  uint8_t status = 0 ;
       /* --- KỊCH BẢN PHÁT (TX) --- */
 	  status = DRV_Nrf24l01Transmit(&Instance0,2, &masterAddress2[1], (uint8_t*)"FPT SOFT WARE ");
+	  while( transmited_flag == 0 );
+	  transmited_flag = 0;
+	  DRV_Nrf24l01SwitchMode(&Instance0, NRF24_RECEIVE_MODE);
+	  while( received_flag == 0 );
+	  received_flag = 0 ;
 	  if ( status == STD_E_OK)
 	  {
 		  DRV_Nrf24l01Receive(&Instance0,&pipeID,dummyPayload, 32);
@@ -164,7 +172,6 @@ int main(void)
       if ( DRV_Nrf24l01DataReceiveAvailable(&Instance0) == 1)
       {
           DRV_Nrf24l01Receive(&Instance0,&pipeID, dummyPayload, 10 );
-
       }
       if(dummyPayload[0] == 'F')
       {
@@ -216,6 +223,18 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void EXTI4_IRQHandler()
 {
+	uint8_t status = 0 ;
+	status = DRV_Nrf24l01GetStatus(&Instance0);
+	if ( ((status >> 5) & 0x01) == 1  )
+	{
+		transmited_flag = 1 ;
+		DRV_Nrf24l01ClearIRQ(&Instance0, 1 << 5 );
+	}
+	if ( ((status >> 6) & 0x01) == 1  )
+	{
+		received_flag = 1 ;
+		DRV_Nrf24l01ClearIRQ(&Instance0, 1 << 6 );
+	}
 	__HAL_GPIO_EXTI_CLEAR_IT(CHIP_Irq_Pin);
 	flag = 1 ;
 }
