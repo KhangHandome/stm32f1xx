@@ -256,6 +256,10 @@ NRF24L01_ReturnType DRV_Nrf24l01Receive(NRF24L01_HandleTypedef* NRF24L01Instance
 					HAL_SPI_Receive(NRF24L01Instance->SPI_Instance, &length, 1, 100);
 					HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_SET);
 				}
+                else
+                {
+                    length = 32 ; 
+                }
 
 				/* Read Payload from the top of the FIFO */
 				DRV_Nrf24L01ReadPayload(NRF24L01Instance, destinationPtr, length);
@@ -269,7 +273,7 @@ NRF24L01_ReturnType DRV_Nrf24l01Receive(NRF24L01_HandleTypedef* NRF24L01Instance
 			} while (!(fifo_status & (1 << 0)));
 
 			/* Pull CE low (Standby-I) after processing */
-			HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET);
+			/* HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin, GPIO_PIN_RESET); */
 			retval = STD_E_OK;
 		}
 		else
