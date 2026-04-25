@@ -32,7 +32,7 @@ NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance)
 
     /* --- Activation Sequence --- */
     /* 1. Pull CSN Low to start SPI session */
-    HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
 
     /* 2. Send ACTIVATE command followed by 0x73 to enable special features */
     cmd = ACTIVATE;
@@ -98,6 +98,7 @@ NRF24L01_ReturnType DRV_Nrf24l01Init(NRF24L01_HandleTypedef* NRF24L01Instance)
     /* Clear status flags (RX_DR, TX_DS, MAX_RT) */
     DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, 0x70);
 
+    retval = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
     /* Avoid compiler warning for unused variable */
     (void) retval;
     return STD_E_OK;
@@ -136,6 +137,8 @@ uint8_t DRV_Nrf24l01DataReceiveAvailable(NRF24L01_HandleTypedef* NRF24L01Instanc
 {
 	uint8_t retval = 0 ;
 	uint8_t cmd    = 0xFFU;
+
+	retval = DRV_Nrf_ReadRegister(NRF24L01Instance, CONFIG);
     /* Start SPI transmission */
     HAL_GPIO_WritePin(NRF24L01Instance->ChipSelectPort, NRF24L01Instance->ChipSelectPin, GPIO_PIN_RESET);
 
@@ -258,7 +261,7 @@ NRF24L01_ReturnType DRV_Nrf24l01Receive(NRF24L01_HandleTypedef* NRF24L01Instance
 				}
                 else
                 {
-                    length = 32 ; 
+                    length = 32 ;
                 }
 
 				/* Read Payload from the top of the FIFO */
@@ -361,14 +364,6 @@ NRF24L01_ReturnType DRV_Nrf24l01Transmit(NRF24L01_HandleTypedef* NRF24L01Instanc
         {
             DRV_Nrf_WriteRegister(NRF24L01Instance, STATUS, (1 << 5)); /* Clear TX flag */
         }
-        /* Reload RX Address 0 */
-        DRV_Nrf24l01OpenReadingPipe(NRF24L01Instance, 0, NRF24L01Instance->RxAddressP0);
-
-        /* Return to RX mode automatically */
-        config |= (1 << 0);   // PRIM_RX = 1
-        DRV_Nrf_WriteRegister(NRF24L01Instance, CONFIG, config);
-        HAL_Delay(1);
-        HAL_GPIO_WritePin(NRF24L01Instance->ChipEnablePort, NRF24L01Instance->ChipEnablePin,GPIO_PIN_SET);
     }
     return retval;
 }
