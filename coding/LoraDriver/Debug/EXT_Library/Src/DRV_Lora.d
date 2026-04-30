@@ -1,5 +1,5 @@
 EXT_Library/Src/DRV_Lora.o: ../EXT_Library/Src/DRV_Lora.c \
- /home/khang/Documents/stm32f1xx/coding/LoraDriver/EXT_Library/Inc/DRV_Lora.h \
+ C:/Users/maith/Documents/GitWork/stm32f1xx/coding/LoraDriver/EXT_Library/Inc/DRV_Lora.h \
  ../Core/Inc/spi.h ../Core/Inc/main.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
@@ -26,7 +26,7 @@ EXT_Library/Src/DRV_Lora.o: ../EXT_Library/Src/DRV_Lora.c \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h \
  ../Core/Inc/gpio.h
-/home/khang/Documents/stm32f1xx/coding/LoraDriver/EXT_Library/Inc/DRV_Lora.h:
+C:/Users/maith/Documents/GitWork/stm32f1xx/coding/LoraDriver/EXT_Library/Inc/DRV_Lora.h:
 ../Core/Inc/spi.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:

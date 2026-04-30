@@ -387,6 +387,16 @@ void DRV_LoraDeinit(LORA_HandleTypedef* LORA_Instance);
 LORA_ReturnTypedef DRV_LoraSwitchMode(LORA_HandleTypedef* LORA_Instance, Lora_State_t LoraState);
 
 /**
+ * @brief Kiểm tra xem có dữ liệu hợp lệ trong bộ đệm nhận hay không
+ * @details Hàm này kiểm tra cờ RxDone trong thanh ghi IRQ.
+ *          Nếu có dữ liệu nhưng bị lỗi CRC (nhiễu), hàm sẽ tự động xóa cờ lỗi và trả về false.
+ *
+ * @in LORA_Instance Pointer tới cấu hình LoRa
+ * @return uint8_t 1 (True) nếu có dữ liệu sạch, 0 (False) nếu không có hoặc dữ liệu lỗi
+ */
+uint8_t DRV_LoraAvailable(LORA_HandleTypedef *LORA_Instance);
+
+/**
  * @brief Transmit data via LoRa
  * @details Sends data packet through the LoRa module
  * @in LORA_Instance Pointer to LoRa handle structure

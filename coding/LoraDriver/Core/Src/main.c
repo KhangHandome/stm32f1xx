@@ -86,7 +86,7 @@ typedef enum {
 	CONFIRM
 } StateMachine_t ;
 
-#define IS_TRANSMIT
+//#define IS_TRANSMIT
 /* USER CODE END 0 */
 
 /**
@@ -122,7 +122,9 @@ int main(void)
   MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   DRV_LoraInit(&Lora_Instance_0);
+#ifndef IS_TRANSMIT
   DRV_LoraSwitchMode(&Lora_Instance_0, LORA_RECEIVE_CONTINUOUS_STATE);
+#endif
 //  StateMachine = RECEIVE;
 //  NVIC_EnableIRQ(EXTI0_IRQn);
   /* USER CODE END 2 */
@@ -135,24 +137,38 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 #ifdef IS_TRANSMIT
-	  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) data_test, 50, 100);
-	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50, 100);
-	  if(data_rev[0] == 'T' )
-	  {
-		  HAL_GPIO_TogglePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin);
-		  data_rev[0] = 0 ;
-	  }
-	  HAL_Delay(50);
+	static uint8_t timeout = 100 ;
+	DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) data_test, 50, 100);
+	DRV_LoraSwitchMode(&Lora_Instance_0, LORA_MODE_RX_CONT);
+	while(DRV_LoraAvailable(&Lora_Instance_0) != 1 && timeout --  )
+	{
+		HAL_Delay(1);
+	}
+	if ( DRV_LoraAvailable(&Lora_Instance_0) == 1)
+	{
+		DRV_LoraReceive(&Lora_Instance_0, data_rev, 50, 100);
+	}
+
+	if(data_rev[0] == 'T' )
+	{
+		HAL_GPIO_TogglePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin);
+		data_rev[0] = 0 ;
+	}
+	HAL_Delay(100);
 #else
-	  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50, 100);
+	  if(DRV_LoraAvailable(&Lora_Instance_0) == 1 )
+	  {
+		  DRV_LoraReceive(&Lora_Instance_0, data_rev, 50, 10);
+	  }
 	  if(data_rev[0] == 'T')
 	  {
 		  DRV_LoraTransmit(&Lora_Instance_0, (uint8_t*) "Testing complete", 50, 100);
+		  DRV_LoraSwitchMode(&Lora_Instance_0, LORA_MODE_RX_CONT);
 		  HAL_GPIO_TogglePin(LED_STATUS_GPIO_Port, LED_STATUS_Pin);
 		  data_rev[0] = '\0';
 	  }
 #endif
-	  HAL_IWDG_Refresh(&hiwdg);
+//	  HAL_IWDG_Refresh(&hiwdg);
   }
   /* USER CODE END 3 */
 }

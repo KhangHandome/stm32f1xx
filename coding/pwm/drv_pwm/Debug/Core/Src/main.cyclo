@@ -1,0 +1,4 @@
+../Core/Src/main.c:59:13:DRV_SelectChannel	2
+../Core/Src/main.c:76:5:main	3
+../Core/Src/main.c:181:6:SystemClock_Config	4
+../Core/Src/main.c:231:6:Error_Handler	1

@@ -1,0 +1,4 @@
+../Core/Src/main.c:59:13:DRV_SelectChannel	32	static
+../Core/Src/main.c:76:5:main	80	static
+../Core/Src/main.c:181:6:SystemClock_Config	88	static
+../Core/Src/main.c:231:6:Error_Handler	4	static,ignoring_inline_asm

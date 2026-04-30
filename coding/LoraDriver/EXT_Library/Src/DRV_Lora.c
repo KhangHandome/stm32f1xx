@@ -323,6 +323,39 @@ LORA_ReturnTypedef DRV_LoraSwitchMode(LORA_HandleTypedef* LORA_Instance, Lora_St
 }
 
 /**
+ * @brief Kiểm tra xem có dữ liệu hợp lệ trong bộ đệm nhận hay không
+ * @details Hàm này kiểm tra cờ RxDone trong thanh ghi IRQ.
+ *          Nếu có dữ liệu nhưng bị lỗi CRC (nhiễu), hàm sẽ tự động xóa cờ lỗi và trả về false.
+ *
+ * @in LORA_Instance Pointer tới cấu hình LoRa
+ * @return uint8_t 1 (True) nếu có dữ liệu sạch, 0 (False) nếu không có hoặc dữ liệu lỗi
+ */
+uint8_t DRV_LoraAvailable(LORA_HandleTypedef *LORA_Instance)
+{
+    uint8_t irqFlags = 0;
+
+    /* 1. Đọc trạng thái các cờ ngắt hiện tại */
+    irqFlags = DRV_Lora_GetIrqStatus(LORA_Instance);
+
+    /* 2. Kiểm tra cờ RxDone (Bit 6) */
+    if (irqFlags & (1 << 6))
+    {
+        /* 3. Kiểm tra lỗi CRC (Bit 5) - Nếu có lỗi thì dữ liệu đó vứt đi */
+        if (irqFlags & (1 << 5))
+        {
+            /* Xóa cờ lỗi CRC và cờ RxDone để chuẩn bị nhận gói mới */
+            DRV_Lora_ClearIrq(LORA_Instance, (1 << 6) | (1 << 5));
+            return 0; // Có tín hiệu nhưng bị hỏng (nhiễu)
+        }
+
+        /* Có dữ liệu ngon lành */
+        return 1;
+    }
+
+    return 0; // Không có tín hiệu gì
+}
+
+/**
  * @brief Transmit data via LoRa
  * @details Performs complete transmission sequence:
  *          1. Switch to standby mode
@@ -428,9 +461,6 @@ LORA_ReturnTypedef DRV_LoraReceive(LORA_HandleTypedef* LORA_Instance, uint8_t* P
 	 * ======================================================================== */
 	if (LORA_Instance->OperationMode == LORA_MODE_POLLING)
 	{
-		/* Switch to continuous receive mode */
-		DRV_LoraSwitchMode(LORA_Instance, LORA_RECEIVE_CONTINUOUS_STATE);
-
 		/**
 		 * Wait for RxDone flag (bit 6)
 		 * Poll IRQ flags register until packet received or timeout
